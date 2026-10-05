@@ -14,8 +14,8 @@
     .admin{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:24px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:7px}.field.wide{grid-column:1/-1}.field label{font-size:12px;color:var(--muted);font-weight:800}.field input,.field select,.field textarea{width:100%;border:1px solid #333;background:#0d0d0d;color:white;border-radius:12px;padding:13px;outline:none}.field input:focus,.field textarea:focus{border-color:var(--gold)}.sharebox{word-break:break-all;background:#070707;border:1px dashed #444;border-radius:12px;padding:13px;font-size:12px;color:#c8c8c2;min-height:72px}.actions{display:flex;gap:9px;flex-wrap:wrap}.mini{border:1px solid var(--line);background:#202020;color:white;padding:11px 13px;border-radius:11px;font-weight:750}
     .checkout{max-width:620px;margin:45px auto}.payopt{width:100%;display:flex;justify-content:space-between;border:2px solid transparent;background:#171717;color:white;border-radius:14px;padding:17px;margin:8px 0}.payopt.sel{border-color:var(--gold)}.code{font-size:clamp(40px,12vw,68px);font-weight:1000;letter-spacing:8px;color:var(--gold);text-align:center;background:#050505;border:1px dashed #555;border-radius:19px;padding:18px;margin:22px 0}
     .watch{max-width:1020px;margin:26px auto}.lock{max-width:500px;margin:80px auto;text-align:center}.codeinput{width:100%;background:#121212;border:1px solid #333;color:white;border-radius:14px;padding:17px;text-align:center;font-size:28px;font-weight:950;letter-spacing:8px;margin:17px 0}.playerWrap{display:none}.playerBox{aspect-ratio:16/9;background:#050505;border:1px solid #2b2b2b;border-radius:20px;overflow:hidden;position:relative}.playerBox video,.playerBox iframe{width:100%;height:100%;border:0;background:black}.livetag{position:absolute;z-index:3;top:14px;left:14px;background:var(--red);padding:7px 9px;border-radius:8px;font-size:11px;font-weight:950}.viewer{position:absolute;z-index:3;top:14px;right:14px;background:#000c;padding:7px 9px;border-radius:8px;font-size:12px}.playerError{padding:30px;color:#ff9a9a}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.status{color:var(--green)}.row{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid var(--line)}
-    .toast{position:fixed;bottom:18px;right:18px;background:white;color:black;border-radius:13px;padding:13px 16px;font-weight:800;transform:translateY(100px);transition:.25s;z-index:99}.toast.on{transform:none}
-    @media(max-width:820px){.wrap{width:min(100% - 20px,1160px)}.nav{height:62px}.navbtn span{display:none}.hero{min-height:560px;padding:22px}.hero:before{font-size:100px}h1{letter-spacing:-3px}.grid3,.admin,.kpis{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}.hero .cta{width:100%}}
+    .eventGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.eventCard{border:1px solid var(--line);background:#111d;border-radius:20px;padding:18px;cursor:pointer;transition:.2s}.eventCard:hover{transform:translateY(-2px);border-color:#5a4923}.eventCard h3{font-size:23px;margin:8px 0 5px}.eventCard .eventPrice{color:var(--gold);font-weight:950;font-size:20px}.eventCard .eventMeta{color:var(--muted);font-size:13px}.toast{position:fixed;bottom:18px;right:18px;background:white;color:black;border-radius:13px;padding:13px 16px;font-weight:800;transform:translateY(100px);transition:.25s;z-index:99}.toast.on{transform:none}
+    @media(max-width:820px){.wrap{width:min(100% - 20px,1160px)}.nav{height:62px}.navbtn span{display:none}.hero{min-height:560px;padding:22px}.hero:before{font-size:100px}h1{letter-spacing:-3px}.grid3,.eventGrid,.admin,.kpis{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}.hero .cta{width:100%}}
   </style>
 </head>
 <body>
@@ -40,6 +40,13 @@
         <button class="cta dark" onclick="go('watch')">J'AI DÉJÀ UN CODE</button>
       </div>
     </section>
+
+    <section class="section">
+      <div class="pill">PROGRAMME PPV</div>
+      <h2>Plusieurs combats, une seule plateforme.</h2>
+      <div id="eventGrid" class="eventGrid"></div>
+    </section>
+
     <section class="section">
       <h2>Le direct, partout au Sénégal et dans la diaspora.</h2>
       <div class="grid3">
@@ -118,7 +125,10 @@
           <div class="field wide"><label>FOURNISSEUR / CHAÎNE</label><input id="provider" placeholder="Ex : RTS, 2STV, promoteur..."></div>
         </div>
         <div class="demo">Pour HLS/LL-HLS, privilégiez une URL HTTPS se terminant par <b>.m3u8</b>. Le serveur vidéo doit autoriser CORS depuis le domaine de cette démo. RTMP/SRT ne sont pas lisibles directement dans un navigateur.</div>
-        <button class="cta full" onclick="generate()">GÉNÉRER LE LIEN SPECTATEUR</button>
+        <div class="actions">
+          <button class="cta" style="flex:1" onclick="saveEvent()">AJOUTER / METTRE À JOUR LE COMBAT</button>
+          <button class="cta dark" style="flex:1" onclick="generate()">GÉNÉRER LE LIEN SPECTATEUR</button>
+        </div>
       </div>
       <div class="card">
         <div class="label">LIEN SPECTATEUR</div>
@@ -130,7 +140,7 @@
         <div class="section" style="margin-top:28px">
           <div class="label">STATUT PROTOTYPE</div>
           <div class="row"><span>Player HLS</span><b class="status">✓ PRÊT</b></div>
-          <div class="row"><span>Wave / Orange</span><b style="color:var(--gold)">SIMULÉ</b></div>
+          <div class="row"><span>PayDunya</span><b style="color:var(--gold)">SANDBOX PRÊT</b></div>
           <div class="row"><span>Protection PPV</span><b class="status">1 APPAREIL / CODE</b></div>
           <div class="row"><span>Supabase</span><b style="color:var(--gold)">À CONNECTER</b></div>
         </div>
@@ -151,7 +161,41 @@
 <div class="toast" id="toast"></div>
 
 <script>
-let cfg={a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""};
+let cfg={id:"modou-siteu",a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""};
+const DEFAULT_EVENTS=[
+  {id:"modou-siteu",a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""},
+  {id:"balla-eumeu",a:"Balla Gaye 2",b:"Eumeu Sène",date:"Dimanche • 19h30 GMT",price:2500,code:"624810",viewers:18500,stream:"",provider:""},
+  {id:"sa-thies-reug",a:"Sa Thiès",b:"Reug Reug",date:"À venir",price:2000,code:"531907",viewers:9200,stream:"",provider:""}
+];
+function allEvents(){
+  let custom=[];try{custom=JSON.parse(localStorage.getItem("ppv_events")||"[]")}catch(e){}
+  const byId=new Map(DEFAULT_EVENTS.map(x=>[x.id,x]));
+  custom.forEach(x=>byId.set(x.id,x));
+  return [...byId.values()];
+}
+function renderEvents(){
+  const grid=by("eventGrid"); if(!grid)return;
+  grid.innerHTML=allEvents().map(e=>`
+    <div class="eventCard" onclick="selectEvent('${e.id}')">
+      <div class="pill">PPV</div>
+      <h3>${escapeHtml(e.a)} <span style="color:var(--gold)">vs</span> ${escapeHtml(e.b)}</h3>
+      <div class="eventMeta">📅 ${escapeHtml(e.date)}</div>
+      <div class="eventPrice">${Number(e.price||0).toLocaleString("fr-FR")} FCFA</div>
+    </div>`).join("");
+}
+function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+function selectEvent(id){
+  const e=allEvents().find(x=>x.id===id);if(!e)return;
+  cfg={...e};renderCfg();scrollTo({top:0,behavior:"smooth"});
+}
+function saveEvent(){
+  const next=readAdminCfg();
+  let custom=[];try{custom=JSON.parse(localStorage.getItem("ppv_events")||"[]")}catch(e){}
+  const i=custom.findIndex(x=>x.id===next.id);
+  if(i>=0)custom[i]=next;else custom.push(next);
+  localStorage.setItem("ppv_events",JSON.stringify(custom));
+  cfg=next;renderCfg();renderEvents();toast("Combat enregistré dans la démo");
+}
 let shareUrl="";
 let hls=null;
 const SESSION_API="https://ppv-sessions.n2yservice.workers.dev";
@@ -162,7 +206,7 @@ if(!deviceId){
   deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2));
   localStorage.setItem("ppv_device_id",deviceId);
 }
-function eventKey(){return [cfg.a,cfg.b,cfg.date].join("|")}
+function eventKey(){return cfg.id||[cfg.a,cfg.b,cfg.date].join("|")}
 async function sessionCall(path, extra={}){
   const r=await fetch(SESSION_API+path,{
     method:"POST",
@@ -217,9 +261,58 @@ function go(id,btn){
 }
 function startCheckout(){go("checkout")}
 function selPay(el){document.querySelectorAll(".payopt").forEach(x=>x.classList.remove("sel"));el.classList.add("sel")}
-function pay(){
-  toast("Simulation du paiement...");
-  setTimeout(()=>{document.querySelector("#checkout .card").style.display="none";document.querySelectorAll(".payopt").forEach(x=>x.style.display="none");document.querySelector("#checkout .cta.full").style.display="none";by("paid").style.display="block";toast("Paiement confirmé ✓")},800)
+async function pay(){
+  toast("Initialisation PayDunya Sandbox...");
+  const base=location.origin+location.pathname;
+  const cfgParam=encodeURIComponent(enc(cfg));
+  try{
+    const r=await fetch("/api/paydunya-create",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        amount:Number(cfg.price||0),
+        description:"Pass PPV "+cfg.a+" vs "+cfg.b,
+        returnUrl:base+"?mode=watch&paydunya_return=1&cfg="+cfgParam,
+        cancelUrl:base+"?mode=watch&payment_cancelled=1&cfg="+cfgParam,
+        callbackUrl:base.replace(/\/$/,"")+"/api/paydunya-callback",
+        customData:{event_id:cfg.id||eventKey()}
+      })
+    });
+    const data=await r.json();
+    if(data.configured&&data.checkoutUrl&&data.invoiceToken){
+      localStorage.setItem("paydunya_invoice_token",data.invoiceToken);
+      location.href=data.checkoutUrl;
+      return;
+    }
+    simulatePaid("PayDunya Sandbox non configuré : paiement simulé pour la démo.");
+  }catch(e){
+    simulatePaid("PayDunya indisponible : paiement simulé pour la démo.");
+  }
+}
+function simulatePaid(msg){
+  document.querySelector("#checkout .card").style.display="none";
+  document.querySelectorAll(".payopt").forEach(x=>x.style.display="none");
+  document.querySelector("#checkout .cta.full").style.display="none";
+  by("paid").style.display="block";
+  toast(msg||"Paiement confirmé ✓");
+}
+async function handlePayDunyaReturn(){
+  const q=new URLSearchParams(location.search);
+  if(q.get("payment_cancelled")==="1"){toast("Paiement annulé");return}
+  if(q.get("paydunya_return")!=="1")return;
+  const token=localStorage.getItem("paydunya_invoice_token");
+  if(!token){toast("Token PayDunya introuvable");return}
+  try{
+    const r=await fetch("/api/paydunya-confirm?token="+encodeURIComponent(token));
+    const data=await r.json();
+    if(data.configured&&data.paid){
+      go("checkout");simulatePaid("Paiement PayDunya Sandbox confirmé ✓");
+    }else if(!data.configured){
+      go("checkout");simulatePaid("PayDunya non configuré : retour démo simulé.");
+    }else{
+      toast("Paiement PayDunya non confirmé");
+    }
+  }catch(e){toast("Impossible de vérifier PayDunya")}
 }
 function openAfterPay(){by("codeInput").value=cfg.code;go("watch");unlock()}
 async function unlock(){
@@ -259,14 +352,21 @@ function mountPlayer(){
     else m.innerHTML='<div class="playerError">HLS non supporté par ce navigateur.</div>';
   } else v.src=u;
 }
+function slugify(s){return String(s||"event").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function readAdminCfg(){
+  const a=by("a").value||"Combattant A",b=by("b").value||"Combattant B",date=by("date").value||"";
+  return {id:cfg.id||slugify(a+"-"+b+"-"+date),a,b,date,price:Number(by("price").value||0),code:by("code").value||"847291",viewers:Number(by("viewers").value||0),stream:by("stream").value.trim(),provider:by("provider").value.trim()};
+}
 function generate(){
-  cfg={a:by("a").value||"Combattant A",b:by("b").value||"Combattant B",date:by("date").value||"",price:Number(by("price").value||0),code:by("code").value||"847291",viewers:Number(by("viewers").value||0),stream:by("stream").value.trim(),provider:by("provider").value.trim()};
+  cfg=readAdminCfg();
   renderCfg(); const base=location.origin+location.pathname;shareUrl=base+"?mode=watch&cfg="+encodeURIComponent(enc(cfg));by("share").textContent=shareUrl;toast("Lien spectateur généré")
 }
 async function copyShare(){if(!shareUrl)return toast("Générez d'abord un lien");await navigator.clipboard.writeText(shareUrl);toast("Lien copié")}
 function openShare(){if(!shareUrl)return toast("Générez d'abord un lien");window.open(shareUrl,"_blank")}
 function toast(t){const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)}
 readCfg();
+renderEvents();
+handlePayDunyaReturn();
 let demo=482351;setInterval(()=>{demo+=Math.floor(Math.random()*35);if(by("kViewers"))by("kViewers").textContent=demo.toLocaleString("fr-FR")},2500);
 </script>
 </body>
