@@ -1,20 +1,53 @@
-# PPV Sénégal — Prototype
+# LÀMB LIVE — Prototype PPV Sénégal
 
-Prototype commercial de plateforme Pay-Per-View pour la lutte sénégalaise.
+Prototype commercial d'une plateforme Pay-Per-View multi-combats pour la lutte sénégalaise.
 
-## Fonctionnalités
-- Page événement mobile-first
-- Paiement Wave / Orange Money simulé
-- Code PPV de démonstration
-- Player compatible HLS (.m3u8), MP4, YouTube et Vimeo
-- Mode faible latence HLS via hls.js
-- Générateur de lien spectateur depuis l'administration
-- Dashboard promoteur avec données explicitement marquées comme démonstration
+## Démo
+- Catalogue de plusieurs combats
+- Fiche événement + prix PPV
+- Player HLS/LL-HLS, MP4, YouTube et Vimeo
+- Un code PPV ne peut être actif que sur un seul appareil à la fois
+- Backend de session séparé `ppv-sessions`
+- PayDunya Sandbox intégré côté serveur
+- Mode de paiement simulé automatique tant que les clés PayDunya ne sont pas configurées
+- Dashboard promoteur et génération de lien spectateur
 
-## Utilisation
-Ouvrir l'onglet **Promoteur**, coller le lien live communiqué par la chaîne ou le promoteur, renseigner les informations du combat et cliquer sur **Générer le lien spectateur**.
+## PayDunya Sandbox
 
-> Prototype uniquement : le lien et le code PPV sont encodés côté client et ne constituent pas une protection de production.
+Configurer dans les variables d'environnement Vercel :
 
-## Production
-La version de production remplacera ce mécanisme par Supabase + paiement réel + jetons vidéo signés + CDN/LL-HLS.
+- `PAYDUNYA_MASTER_KEY`
+- `PAYDUNYA_PRIVATE_KEY`
+- `PAYDUNYA_TOKEN`
+
+Le navigateur n'a jamais accès aux clés privées.
+
+## Supabase
+
+Le projet Supabase `ppv` n'a pas encore pu être créé, car le compte a atteint la limite de deux projets Free actifs. Aucune ressource Supabase existante n'a été modifiée.
+
+Architecture prévue :
+- `events` : combats et flux live
+- `purchases` : paiements / transactions
+- `access_codes` : codes PPV
+- Admin sécurisé par Supabase Auth
+- RLS sur toutes les tables exposées
+
+Supabase ne distribuera pas la vidéo. Le flux live doit aller directement du fournisseur/CDN vers le player.
+
+## Production cible
+
+```
+Promoteur / chaîne
+    ↓ SRT
+MediaLive / fournisseur live
+    ↓
+LL-HLS + CDN
+    ↓
+spectateurs
+
+Web / API
+    ├─ PayDunya / Wave / Orange Money
+    ├─ Supabase PostgreSQL (événements + paiements)
+    └─ service de sessions PPV / tokens vidéo
+```
