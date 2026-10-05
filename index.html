@@ -117,9 +117,9 @@
         <div class="formgrid">
           <div class="field"><label>COMBATTANT A</label><input id="a" value="Modou Lô"></div>
           <div class="field"><label>COMBATTANT B</label><input id="b" value="Siteu"></div>
-          <div class="field"><label>DATE / HEURE</label><input id="date" value="Samedi • 20h00 GMT"></div>
+          <div class="field"><label>DATE / HEURE</label><input id="date" type="datetime-local" value="2026-10-10T20:00"></div>
           <div class="field"><label>PRIX PPV (FCFA)</label><input id="price" type="number" value="2000"></div>
-          <div class="field"><label>CODE PPV DÉMO</label><input id="code" value="847291"></div>
+          <div class="field"><label>CODE PPV DÉMO (optionnel)</label><input id="code" placeholder="Ex : 847291"></div><div class="field"><label>PIN ADMIN</label><input id="adminPin" type="password" placeholder="PIN de démonstration"></div>
           <div class="field"><label>SPECTATEURS DÉMO</label><input id="viewers" type="number" value="28452"></div>
           <div class="field wide"><label>URL DU LIVE</label><input id="stream" placeholder="https://.../master.m3u8 ou lien YouTube/Vimeo/MP4"></div>
           <div class="field wide"><label>FOURNISSEUR / CHAÎNE</label><input id="provider" placeholder="Ex : RTS, 2STV, promoteur..."></div>
@@ -161,40 +161,103 @@
 <div class="toast" id="toast"></div>
 
 <script>
-let cfg={id:"modou-siteu",a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""};
-const DEFAULT_EVENTS=[
-  {id:"modou-siteu",a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""},
-  {id:"balla-eumeu",a:"Balla Gaye 2",b:"Eumeu Sène",date:"Dimanche • 19h30 GMT",price:2500,code:"624810",viewers:18500,stream:"",provider:""},
-  {id:"sa-thies-reug",a:"Sa Thiès",b:"Reug Reug",date:"À venir",price:2000,code:"531907",viewers:9200,stream:"",provider:""}
-];
-function allEvents(){
-  let custom=[];try{custom=JSON.parse(localStorage.getItem("ppv_events")||"[]")}catch(e){}
-  const byId=new Map(DEFAULT_EVENTS.map(x=>[x.id,x]));
-  custom.forEach(x=>byId.set(x.id,x));
-  return [...byId.values()];
+const SUPABASE_URL="https://kfsjemncncergnotngmw.supabase.co";
+const SUPABASE_KEY="sb_publishable_1Q4aU2_nsIySRPsCpKu4CA_C-x89d1m";
+const MANAGE_URL=SUPABASE_URL+"/functions/v1/manage-event";
+const ACCESS_URL=SUPABASE_URL+"/functions/v1/stream-access";
+const DEMO_PURCHASE_URL=SUPABASE_URL+"/functions/v1/demo-purchase";
+let eventCache=[];
+let cfg={id:null,slug:"",a:"Modou Lô",b:"Siteu",starts_at:"2026-10-10T20:00:00Z",price:2000,viewers:28452,stream:"",provider:""};
+
+function formatEventDate(value){
+  if(!value)return "À venir";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return String(value);
+  return new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit",timeZone:"UTC"}).format(d)+" GMT";
+}
+function toLocalInput(value){
+  if(!value)return "";
+  const d=new Date(value); if(Number.isNaN(d.getTime()))return "";
+  return d.toISOString().slice(0,16);
+}
+function mapEvent(row){
+  return {id:row.id,slug:row.slug,a:row.fighter_a,b:row.fighter_b,starts_at:row.starts_at,price:row.price_fcfa,viewers:0,stream:"",provider:""};
+}
+async function loadEvents(){
+  try{
+    const r=await fetch(SUPABASE_URL+"/rest/v1/events?select=id,slug,fighter_a,fighter_b,starts_at,price_fcfa,status&status=in.(published,live,ended)&order=starts_at.asc",{
+      headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}
+    });
+    if(!r.ok)throw new Error("catalog");
+    eventCache=(await r.json()).map(mapEvent);
+    renderEvents();
+    const q=new URLSearchParams(location.search);
+    const requested=q.get("event");
+    const found=eventCache.find(x=>x.id===requested||x.slug===requested);
+    if(found)cfg={...found};
+    else if(!cfg.id&&eventCache[0])cfg={...eventCache[0]};
+    renderCfg();
+    populateAdmin();
+  }catch(e){
+    toast("Catalogue Supabase temporairement indisponible");
+  }
 }
 function renderEvents(){
   const grid=by("eventGrid"); if(!grid)return;
-  grid.innerHTML=allEvents().map(e=>`
+  grid.innerHTML=eventCache.map(e=>`
     <div class="eventCard" onclick="selectEvent('${e.id}')">
       <div class="pill">PPV</div>
       <h3>${escapeHtml(e.a)} <span style="color:var(--gold)">vs</span> ${escapeHtml(e.b)}</h3>
-      <div class="eventMeta">📅 ${escapeHtml(e.date)}</div>
+      <div class="eventMeta">📅 ${escapeHtml(formatEventDate(e.starts_at))}</div>
       <div class="eventPrice">${Number(e.price||0).toLocaleString("fr-FR")} FCFA</div>
     </div>`).join("");
 }
 function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 function selectEvent(id){
-  const e=allEvents().find(x=>x.id===id);if(!e)return;
-  cfg={...e};renderCfg();scrollTo({top:0,behavior:"smooth"});
+  const e=eventCache.find(x=>x.id===id);if(!e)return;
+  cfg={...e};renderCfg();populateAdmin();scrollTo({top:0,behavior:"smooth"});
 }
-function saveEvent(){
+function populateAdmin(){
+  if(!by("a"))return;
+  by("a").value=cfg.a||"";
+  by("b").value=cfg.b||"";
+  by("date").value=toLocalInput(cfg.starts_at);
+  by("price").value=cfg.price||0;
+  by("viewers").value=cfg.viewers||0;
+  by("stream").value="";
+  by("provider").value=cfg.provider||"";
+  by("code").value="";
+}
+async function saveEvent(silent=false){
   const next=readAdminCfg();
-  let custom=[];try{custom=JSON.parse(localStorage.getItem("ppv_events")||"[]")}catch(e){}
-  const i=custom.findIndex(x=>x.id===next.id);
-  if(i>=0)custom[i]=next;else custom.push(next);
-  localStorage.setItem("ppv_events",JSON.stringify(custom));
-  cfg=next;renderCfg();renderEvents();toast("Combat enregistré dans la démo");
+  const pin=by("adminPin").value.trim();
+  if(!pin){toast("Entrez le PIN admin");return null}
+  try{
+    const r=await fetch(MANAGE_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-admin-pin":pin},
+      body:JSON.stringify({
+        slug:next.slug,
+        fighter_a:next.a,
+        fighter_b:next.b,
+        starts_at:next.starts_at||null,
+        price_fcfa:next.price,
+        stream_url:next.stream,
+        provider:next.provider,
+        code:next.code,
+        status:"published"
+      })
+    });
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||"save_failed");
+    cfg={...mapEvent(data.event),stream:"",provider:next.provider};
+    await loadEvents();
+    if(!silent)toast("Combat enregistré dans Supabase");
+    return cfg;
+  }catch(e){
+    toast(e.message==="unauthorized"?"PIN admin incorrect":"Impossible d'enregistrer le combat");
+    return null;
+  }
 }
 let shareUrl="";
 let hls=null;
@@ -206,12 +269,12 @@ if(!deviceId){
   deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2));
   localStorage.setItem("ppv_device_id",deviceId);
 }
-function eventKey(){return cfg.id||[cfg.a,cfg.b,cfg.date].join("|")}
+function eventKey(){return cfg.id||cfg.slug||[cfg.a,cfg.b,cfg.starts_at].join("|")}
 async function sessionCall(path, extra={}){
   const r=await fetch(SESSION_API+path,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({code:String(cfg.code),eventKey:eventKey(),deviceId,token:sessionToken,...extra})
+    body:JSON.stringify({code:String(extra.code||by("codeInput")?.value||""),eventKey:eventKey(),deviceId,token:sessionToken,...extra})
   });
   let data={}; try{data=await r.json()}catch(e){}
   return {ok:r.ok,status:r.status,data};
@@ -239,18 +302,11 @@ function startHeartbeat(){
 }
 function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
 function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
-function readCfg(){
-  const q=new URLSearchParams(location.search);
-  const raw=q.get("cfg");
-  if(raw){try{cfg=dec(raw)}catch(e){}}
-  renderCfg();
-  if(q.get("mode")==="watch") go("home");
-}
 function renderCfg(){
-  by("hA").textContent=cfg.a.toUpperCase(); by("hB").textContent=cfg.b.toUpperCase(); by("hDate").textContent=cfg.date;
+  by("hA").textContent=(cfg.a||"").toUpperCase(); by("hB").textContent=(cfg.b||"").toUpperCase(); by("hDate").textContent=formatEventDate(cfg.starts_at);
   const p=Number(cfg.price||0).toLocaleString("fr-FR"); by("hPrice").textContent=p; by("cPrice").textContent=p; by("cButtonPrice").textContent=p;
-  by("cTitle").textContent=cfg.a+" vs "+cfg.b; by("wTitle").textContent=cfg.a+" vs "+cfg.b; by("wMeta").textContent=(cfg.provider?cfg.provider+" • ":"")+"Dakar • Sénégal";
-  by("paidCode").textContent=cfg.code; by("viewerCount").textContent=Number(cfg.viewers||0).toLocaleString("fr-FR");
+  by("cTitle").textContent=(cfg.a||"")+" vs "+(cfg.b||""); by("wTitle").textContent=(cfg.a||"")+" vs "+(cfg.b||""); by("wMeta").textContent=(cfg.provider?cfg.provider+" • ":"")+"Dakar • Sénégal";
+  by("viewerCount").textContent=Number(cfg.viewers||0).toLocaleString("fr-FR");
 }
 function by(id){return document.getElementById(id)}
 function go(id,btn){
@@ -272,8 +328,8 @@ async function pay(){
       body:JSON.stringify({
         amount:Number(cfg.price||0),
         description:"Pass PPV "+cfg.a+" vs "+cfg.b,
-        returnUrl:base+"?mode=watch&paydunya_return=1&cfg="+cfgParam,
-        cancelUrl:base+"?mode=watch&payment_cancelled=1&cfg="+cfgParam,
+        returnUrl:base+"?mode=watch&paydunya_return=1&event="+encodeURIComponent(cfg.id),
+        cancelUrl:base+"?mode=watch&payment_cancelled=1&event="+encodeURIComponent(cfg.id),
         callbackUrl:base.replace(/\/$/,"")+"/api/paydunya-callback",
         customData:{event_id:cfg.id||eventKey()}
       })
@@ -289,7 +345,15 @@ async function pay(){
     simulatePaid("PayDunya indisponible : paiement simulé pour la démo.");
   }
 }
-function simulatePaid(msg){
+async function simulatePaid(msg){
+  let code="";
+  try{
+    const r=await fetch(DEMO_PURCHASE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:cfg.id})});
+    const data=await r.json(); if(r.ok)code=data.code||"";
+  }catch(e){}
+  if(!code){toast("Impossible de générer le code PPV");return}
+  by("paidCode").textContent=code;
+  localStorage.setItem("ppv_last_code_"+cfg.id,code);
   document.querySelector("#checkout .card").style.display="none";
   document.querySelectorAll(".payopt").forEach(x=>x.style.display="none");
   document.querySelector("#checkout .cta.full").style.display="none";
@@ -314,25 +378,29 @@ async function handlePayDunyaReturn(){
     }
   }catch(e){toast("Impossible de vérifier PayDunya")}
 }
-function openAfterPay(){by("codeInput").value=cfg.code;go("watch");unlock()}
+function openAfterPay(){by("codeInput").value=localStorage.getItem("ppv_last_code_"+cfg.id)||"";go("watch");unlock()}
 async function unlock(){
-  if(by("codeInput").value.trim()!=String(cfg.code)){by("codeErr").textContent="Code PPV invalide.";return}
-  by("codeErr").textContent="Vérification de l'appareil...";
+  const code=by("codeInput").value.trim();
+  if(!code){by("codeErr").textContent="Entrez votre code PPV.";return}
+  if(!cfg.id){by("codeErr").textContent="Combat introuvable.";return}
+  by("codeErr").textContent="Vérification du code...";
   try{
-    const r=await sessionCall("/login");
-    if(!r.ok||!r.data.token){
-      by("codeErr").textContent="Impossible de vérifier la session. Réessayez.";
+    const access=await fetch(ACCESS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:cfg.id,code})});
+    const data=await access.json();
+    if(!access.ok){
+      by("codeErr").textContent=data.error==="stream_not_configured"?"Le direct n'est pas encore configuré pour ce combat.":"Code PPV invalide ou expiré.";
       return;
     }
+    cfg.stream=data.stream_url||"";cfg.provider=data.provider||"";
+    const r=await sessionCall("/login",{code});
+    if(!r.ok||!r.data.token){by("codeErr").textContent="Impossible de vérifier la session.";return}
     sessionToken=r.data.token;
     by("codeErr").textContent="";
     by("lock").style.display="none";
     by("playerWrap").style.display="block";
-    mountPlayer();
-    startHeartbeat();
-    toast("Accès autorisé sur cet appareil");
+    renderCfg();mountPlayer();startHeartbeat();toast("Accès autorisé sur cet appareil");
   }catch(e){
-    by("codeErr").textContent="Connexion au service de session impossible.";
+    by("codeErr").textContent="Connexion au service d'accès impossible.";
   }
 }
 function youtubeId(u){try{const x=new URL(u);if(x.hostname.includes("youtu.be"))return x.pathname.slice(1);if(x.hostname.includes("youtube.com"))return x.searchParams.get("v")||x.pathname.split("/").pop()}catch(e){}return null}
@@ -354,19 +422,28 @@ function mountPlayer(){
 }
 function slugify(s){return String(s||"event").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 function readAdminCfg(){
-  const a=by("a").value||"Combattant A",b=by("b").value||"Combattant B",date=by("date").value||"";
-  return {id:cfg.id||slugify(a+"-"+b+"-"+date),a,b,date,price:Number(by("price").value||0),code:by("code").value||"847291",viewers:Number(by("viewers").value||0),stream:by("stream").value.trim(),provider:by("provider").value.trim()};
+  const a=by("a").value||"Combattant A",b=by("b").value||"Combattant B",rawDate=by("date").value||"";
+  const starts_at=rawDate?new Date(rawDate+"Z").toISOString():null;
+  return {id:cfg.id,slug:cfg.slug||slugify(a+"-"+b+"-"+rawDate),a,b,starts_at,price:Number(by("price").value||0),code:by("code").value.trim(),viewers:Number(by("viewers").value||0),stream:by("stream").value.trim(),provider:by("provider").value.trim()};
 }
-function generate(){
-  cfg=readAdminCfg();
-  renderCfg(); const base=location.origin+location.pathname;shareUrl=base+"?mode=watch&cfg="+encodeURIComponent(enc(cfg));by("share").textContent=shareUrl;toast("Lien spectateur généré")
+async function generate(){
+  const saved=await saveEvent(true); if(!saved)return;
+  const base=location.origin+location.pathname;
+  shareUrl=base+"?mode=watch&event="+encodeURIComponent(saved.id);
+  by("share").textContent=shareUrl;toast("Lien spectateur sécurisé généré");
 }
 async function copyShare(){if(!shareUrl)return toast("Générez d'abord un lien");await navigator.clipboard.writeText(shareUrl);toast("Lien copié")}
 function openShare(){if(!shareUrl)return toast("Générez d'abord un lien");window.open(shareUrl,"_blank")}
 function toast(t){const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)}
-readCfg();
-renderEvents();
-handlePayDunyaReturn();
+async function bootstrap(){
+  const q=new URLSearchParams(location.search);
+  const raw=q.get("cfg");
+  if(raw){try{const legacy=dec(raw);cfg={...cfg,...legacy,starts_at:legacy.starts_at||legacy.date||cfg.starts_at}}catch(e){}}
+  await loadEvents();
+  if(q.get("mode")==="watch")go("home");
+  await handlePayDunyaReturn();
+}
+bootstrap();
 let demo=482351;setInterval(()=>{demo+=Math.floor(Math.random()*35);if(by("kViewers"))by("kViewers").textContent=demo.toLocaleString("fr-FR")},2500);
 </script>
 </body>
