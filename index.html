@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#090909" />
+  <title>Làmb Live — PPV Sénégal</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
+  <style>
+    :root{--bg:#080808;--card:#121212;--card2:#171717;--line:#282828;--txt:#f7f7f5;--muted:#9b9b95;--gold:#f5c451;--red:#ef233c;--green:#1bc47d}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 85% 0,#37150d 0,transparent 28%),radial-gradient(circle at 0 35%,#251c00 0,transparent 25%),var(--bg);color:var(--txt);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select,textarea{font:inherit}.wrap{width:min(1160px,calc(100% - 28px));margin:auto}.nav{height:70px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:1000;font-size:23px;letter-spacing:-1.2px}.brand b{color:var(--gold)}.navlinks{display:flex;gap:8px}.navbtn,.ghost{border:1px solid var(--line);background:#ffffff0b;color:white;border-radius:12px;padding:10px 13px;font-weight:750}.navbtn.active{background:white;color:#070707}.page{display:none;padding-bottom:70px}.page.active{display:block}
+    .hero{min-height:610px;border:1px solid var(--line);border-radius:28px;padding:36px;display:flex;align-items:flex-end;position:relative;overflow:hidden;background:linear-gradient(135deg,#191919,#090909)}.hero:before{content:"LÀMB";position:absolute;right:-24px;top:45px;font-size:180px;font-weight:1000;opacity:.025}.hero:after{content:"";position:absolute;width:470px;height:470px;border-radius:50%;background:#f5c45118;filter:blur(30px);right:-90px;top:-80px}.heroContent{position:relative;z-index:2;max-width:760px}.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid #ef233c42;background:#ef233c1b;color:#ff7d8d;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:850}.dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 15px var(--red)}h1{font-size:clamp(52px,9vw,104px);line-height:.86;letter-spacing:-6px;margin:18px 0;text-transform:uppercase}.vs{color:var(--gold);font-size:.35em;letter-spacing:-1px}.meta{display:flex;gap:18px;flex-wrap:wrap;color:#c4c4bf;margin:24px 0}.price{font-size:36px;font-weight:1000}.price small{font-size:13px;color:var(--muted);font-weight:600}.cta{border:0;background:var(--gold);color:#111;border-radius:15px;padding:16px 20px;font-weight:950;margin-top:14px}.cta.dark{background:white}.cta.full{width:100%}.section{margin-top:48px}.section h2{font-size:32px;letter-spacing:-1.2px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{border:1px solid var(--line);background:#111d;border-radius:20px;padding:20px}.label{color:var(--muted);font-size:12px;font-weight:750;letter-spacing:.5px}.big{font-size:31px;font-weight:1000;margin-top:5px}.muted{color:var(--muted)}.demo{border:1px solid #344a2f;background:#162013;color:#b7e6ad;border-radius:13px;padding:13px;font-size:13px;margin:16px 0}
+    .admin{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:24px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:7px}.field.wide{grid-column:1/-1}.field label{font-size:12px;color:var(--muted);font-weight:800}.field input,.field select,.field textarea{width:100%;border:1px solid #333;background:#0d0d0d;color:white;border-radius:12px;padding:13px;outline:none}.field input:focus,.field textarea:focus{border-color:var(--gold)}.sharebox{word-break:break-all;background:#070707;border:1px dashed #444;border-radius:12px;padding:13px;font-size:12px;color:#c8c8c2;min-height:72px}.actions{display:flex;gap:9px;flex-wrap:wrap}.mini{border:1px solid var(--line);background:#202020;color:white;padding:11px 13px;border-radius:11px;font-weight:750}
+    .checkout{max-width:620px;margin:45px auto}.payopt{width:100%;display:flex;justify-content:space-between;border:2px solid transparent;background:#171717;color:white;border-radius:14px;padding:17px;margin:8px 0}.payopt.sel{border-color:var(--gold)}.code{font-size:clamp(40px,12vw,68px);font-weight:1000;letter-spacing:8px;color:var(--gold);text-align:center;background:#050505;border:1px dashed #555;border-radius:19px;padding:18px;margin:22px 0}
+    .watch{max-width:1020px;margin:26px auto}.lock{max-width:500px;margin:80px auto;text-align:center}.codeinput{width:100%;background:#121212;border:1px solid #333;color:white;border-radius:14px;padding:17px;text-align:center;font-size:28px;font-weight:950;letter-spacing:8px;margin:17px 0}.playerWrap{display:none}.playerBox{aspect-ratio:16/9;background:#050505;border:1px solid #2b2b2b;border-radius:20px;overflow:hidden;position:relative}.playerBox video,.playerBox iframe{width:100%;height:100%;border:0;background:black}.livetag{position:absolute;z-index:3;top:14px;left:14px;background:var(--red);padding:7px 9px;border-radius:8px;font-size:11px;font-weight:950}.viewer{position:absolute;z-index:3;top:14px;right:14px;background:#000c;padding:7px 9px;border-radius:8px;font-size:12px}.playerError{padding:30px;color:#ff9a9a}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.status{color:var(--green)}.row{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid var(--line)}
+    .toast{position:fixed;bottom:18px;right:18px;background:white;color:black;border-radius:13px;padding:13px 16px;font-weight:800;transform:translateY(100px);transition:.25s;z-index:99}.toast.on{transform:none}
+    @media(max-width:820px){.wrap{width:min(100% - 20px,1160px)}.nav{height:62px}.navbtn span{display:none}.hero{min-height:560px;padding:22px}.hero:before{font-size:100px}h1{letter-spacing:-3px}.grid3,.admin,.kpis{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}.hero .cta{width:100%}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <div class="brand">LÀMB<b>LIVE</b></div>
+    <div class="navlinks">
+      <button class="navbtn active" data-page="home" onclick="go('home',this)">🏠 <span>Accueil</span></button>
+      <button class="navbtn" data-page="watch" onclick="go('watch',this)">▶ <span>Regarder</span></button>
+      <button class="navbtn" data-page="admin" onclick="go('admin',this)">⚙ <span>Promoteur</span></button>
+    </div>
+  </nav>
+
+  <main id="home" class="page active">
+    <section class="hero">
+      <div class="heroContent">
+        <div class="pill"><span class="dot"></span> PROCHAIN GRAND COMBAT</div>
+        <h1><span id="hA">MODOU LÔ</span> <span class="vs">VS</span> <span id="hB">SITEU</span></h1>
+        <div class="meta"><span>📅 <b id="hDate">Samedi • 20h00 GMT</b></span><span>📍 Dakar, Sénégal</span><span>📺 Direct + Replay</span></div>
+        <div class="price"><span id="hPrice">2 000</span> FCFA <small>/ accès PPV</small></div>
+        <button class="cta" onclick="startCheckout()">ACHETER LE PASS</button>
+        <button class="cta dark" onclick="go('watch')">J'AI DÉJÀ UN CODE</button>
+      </div>
+    </section>
+    <section class="section">
+      <h2>Le direct, partout au Sénégal et dans la diaspora.</h2>
+      <div class="grid3">
+        <div class="card"><div class="label">PAIEMENT</div><div class="big">Wave</div><p class="muted">Parcours de paiement mobile ultra-court.</p></div>
+        <div class="card"><div class="label">PAIEMENT</div><div class="big">Orange Money</div><p class="muted">Pensé pour les usages locaux.</p></div>
+        <div class="card"><div class="label">STREAMING</div><div class="big">Faible latence</div><p class="muted">HLS / LL-HLS, mobile, ordinateur et TV.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="checkout" class="page">
+    <div class="checkout">
+      <button class="ghost" onclick="go('home')">← Retour</button>
+      <h2 style="font-size:38px;margin-bottom:4px">Acheter le pass</h2>
+      <p class="muted"><span id="cTitle">Modou Lô vs Siteu</span> — Direct</p>
+      <div class="demo">MODE DÉMONSTRATION — aucun argent réel n'est débité.</div>
+      <div class="card">
+        <div class="row"><span>Pass Pay-Per-View</span><b><span id="cPrice">2 000</span> FCFA</b></div>
+        <div class="row"><span>Frais</span><b>0 FCFA</b></div>
+      </div>
+      <button class="payopt sel" onclick="selPay(this)">🌊 <b>Wave</b><span>›</span></button>
+      <button class="payopt" onclick="selPay(this)">🟠 <b>Orange Money</b><span>›</span></button>
+      <button class="payopt" onclick="selPay(this)">💳 <b>Visa / Mastercard</b><span>›</span></button>
+      <button class="cta full" onclick="pay()">PAYER <span id="cButtonPrice">2 000</span> FCFA</button>
+      <div id="paid" style="display:none;text-align:center">
+        <div style="font-size:55px;margin-top:24px">✓</div>
+        <h2>Paiement confirmé</h2>
+        <p class="muted">Votre code d'accès PPV :</p>
+        <div class="code" id="paidCode">123456</div>
+        <button class="cta" onclick="openAfterPay()">REGARDER LE DIRECT</button>
+      </div>
+    </div>
+  </main>
+
+  <main id="watch" class="page">
+    <div class="watch">
+      <div id="lock" class="lock">
+        <div class="pill">ACCÈS PAY-PER-VIEW</div>
+        <h2 style="font-size:40px;margin-bottom:4px">Entrez votre code</h2>
+        <p class="muted">Le code reçu après l'achat du pass.</p>
+        <input id="codeInput" class="codeinput" maxlength="8" inputmode="numeric" placeholder="000000"/>
+        <button class="cta full" onclick="unlock()">ACCÉDER AU DIRECT</button>
+        <p id="codeErr" style="color:#ff7584"></p>
+      </div>
+      <div id="playerWrap" class="playerWrap">
+        <div class="playerBox">
+          <div class="livetag">● EN DIRECT</div>
+          <div class="viewer">👁 <span id="viewerCount">28 452</span></div>
+          <div id="playerMount" style="width:100%;height:100%"></div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="pill">LIVE</div>
+          <h2 style="font-size:34px;margin:10px 0 5px" id="wTitle">Modou Lô vs Siteu</h2>
+          <p class="muted" id="wMeta">Dakar • Sénégal</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main id="admin" class="page">
+    <div style="margin-top:26px">
+      <div class="pill">ADMINISTRATION DÉMO</div>
+      <h2 style="font-size:42px;margin:10px 0 4px">Préparer un direct</h2>
+      <p class="muted">Collez le lien fourni par la chaîne ou le promoteur, puis générez le lien à partager aux spectateurs.</p>
+    </div>
+    <div class="admin">
+      <div class="card">
+        <div class="formgrid">
+          <div class="field"><label>COMBATTANT A</label><input id="a" value="Modou Lô"></div>
+          <div class="field"><label>COMBATTANT B</label><input id="b" value="Siteu"></div>
+          <div class="field"><label>DATE / HEURE</label><input id="date" value="Samedi • 20h00 GMT"></div>
+          <div class="field"><label>PRIX PPV (FCFA)</label><input id="price" type="number" value="2000"></div>
+          <div class="field"><label>CODE PPV DÉMO</label><input id="code" value="847291"></div>
+          <div class="field"><label>SPECTATEURS DÉMO</label><input id="viewers" type="number" value="28452"></div>
+          <div class="field wide"><label>URL DU LIVE</label><input id="stream" placeholder="https://.../master.m3u8 ou lien YouTube/Vimeo/MP4"></div>
+          <div class="field wide"><label>FOURNISSEUR / CHAÎNE</label><input id="provider" placeholder="Ex : RTS, 2STV, promoteur..."></div>
+        </div>
+        <div class="demo">Pour HLS/LL-HLS, privilégiez une URL HTTPS se terminant par <b>.m3u8</b>. Le serveur vidéo doit autoriser CORS depuis le domaine de cette démo. RTMP/SRT ne sont pas lisibles directement dans un navigateur.</div>
+        <button class="cta full" onclick="generate()">GÉNÉRER LE LIEN SPECTATEUR</button>
+      </div>
+      <div class="card">
+        <div class="label">LIEN SPECTATEUR</div>
+        <div class="sharebox" id="share">Configurez un événement puis cliquez sur Générer.</div>
+        <div class="actions" style="margin-top:10px">
+          <button class="mini" onclick="copyShare()">Copier le lien</button>
+          <button class="mini" onclick="openShare()">Ouvrir le lien</button>
+        </div>
+        <div class="section" style="margin-top:28px">
+          <div class="label">STATUT PROTOTYPE</div>
+          <div class="row"><span>Player HLS</span><b class="status">✓ PRÊT</b></div>
+          <div class="row"><span>Wave / Orange</span><b style="color:var(--gold)">SIMULÉ</b></div>
+          <div class="row"><span>Protection PPV</span><b style="color:var(--gold)">DÉMO</b></div>
+          <div class="row"><span>Supabase</span><b style="color:var(--gold)">À CONNECTER</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="pill">DONNÉES DE DÉMONSTRATION</div>
+      <div class="kpis">
+        <div class="card"><div class="label">SPECTATEURS LIVE</div><div class="big" id="kViewers">482 351</div><span class="status">↑ 12,4 %</span></div>
+        <div class="card"><div class="label">PASS VENDUS</div><div class="big">367 843</div><span class="status">↑ 8,7 %</span></div>
+        <div class="card"><div class="label">CA DÉMO</div><div class="big">735,6 M</div><span class="muted">FCFA</span></div>
+        <div class="card"><div class="label">LATENCE CIBLE</div><div class="big">3–5 s</div><span class="status">LL-HLS</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let cfg={a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""};
+let shareUrl="";
+let hls=null;
+function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
+function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
+function readCfg(){
+  const q=new URLSearchParams(location.search);
+  const raw=q.get("cfg");
+  if(raw){try{cfg=dec(raw)}catch(e){}}
+  renderCfg();
+  if(q.get("mode")==="watch") go("home");
+}
+function renderCfg(){
+  by("hA").textContent=cfg.a.toUpperCase(); by("hB").textContent=cfg.b.toUpperCase(); by("hDate").textContent=cfg.date;
+  const p=Number(cfg.price||0).toLocaleString("fr-FR"); by("hPrice").textContent=p; by("cPrice").textContent=p; by("cButtonPrice").textContent=p;
+  by("cTitle").textContent=cfg.a+" vs "+cfg.b; by("wTitle").textContent=cfg.a+" vs "+cfg.b; by("wMeta").textContent=(cfg.provider?cfg.provider+" • ":"")+"Dakar • Sénégal";
+  by("paidCode").textContent=cfg.code; by("viewerCount").textContent=Number(cfg.viewers||0).toLocaleString("fr-FR");
+}
+function by(id){return document.getElementById(id)}
+function go(id,btn){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active")); by(id).classList.add("active");
+  document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));
+  const nav=btn||document.querySelector('[data-page="'+id+'"]'); if(nav)nav.classList.add("active");
+  scrollTo({top:0,behavior:"smooth"});
+}
+function startCheckout(){go("checkout")}
+function selPay(el){document.querySelectorAll(".payopt").forEach(x=>x.classList.remove("sel"));el.classList.add("sel")}
+function pay(){
+  toast("Simulation du paiement...");
+  setTimeout(()=>{document.querySelector("#checkout .card").style.display="none";document.querySelectorAll(".payopt").forEach(x=>x.style.display="none");document.querySelector("#checkout .cta.full").style.display="none";by("paid").style.display="block";toast("Paiement confirmé ✓")},800)
+}
+function openAfterPay(){by("codeInput").value=cfg.code;go("watch");unlock()}
+function unlock(){
+  if(by("codeInput").value.trim()!=String(cfg.code)){by("codeErr").textContent="Code PPV invalide.";return}
+  by("codeErr").textContent="";by("lock").style.display="none";by("playerWrap").style.display="block";mountPlayer();toast("Accès au direct autorisé")
+}
+function youtubeId(u){try{const x=new URL(u);if(x.hostname.includes("youtu.be"))return x.pathname.slice(1);if(x.hostname.includes("youtube.com"))return x.searchParams.get("v")||x.pathname.split("/").pop()}catch(e){}return null}
+function vimeoId(u){const m=String(u).match(/vimeo\.com\/(?:video\/)?(\d+)/);return m&&m[1]}
+function mountPlayer(){
+  if(hls){hls.destroy();hls=null} const m=by("playerMount");m.innerHTML="";
+  const u=(cfg.stream||"").trim();
+  if(!u){m.innerHTML='<div class="playerError"><b>Aucun flux n\'est configuré.</b><br><br>Ajoutez un lien HLS, MP4, YouTube ou Vimeo dans l\'espace Promoteur.</div>';return}
+  const yt=youtubeId(u),vi=vimeoId(u);
+  if(yt){m.innerHTML='<iframe allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen src="https://www.youtube.com/embed/'+yt+'?autoplay=1"></iframe>';return}
+  if(vi){m.innerHTML='<iframe allow="autoplay; fullscreen; picture-in-picture" allowfullscreen src="https://player.vimeo.com/video/'+vi+'?autoplay=1"></iframe>';return}
+  if(/^rtmp|^srt/i.test(u)){m.innerHTML='<div class="playerError"><b>Flux '+u.split(":")[0].toUpperCase()+' détecté.</b><br><br>Ce protocole doit être converti en HLS/LL-HLS avant lecture dans un navigateur.</div>';return}
+  const v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;m.appendChild(v);
+  if(/\.m3u8(?:\?|$)/i.test(u)){
+    if(v.canPlayType("application/vnd.apple.mpegurl")){v.src=u}
+    else if(window.Hls&&Hls.isSupported()){hls=new Hls({lowLatencyMode:true,backBufferLength:30,maxLiveSyncPlaybackRate:1.08});hls.loadSource(u);hls.attachMedia(v);hls.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)toast("Erreur du flux HLS — vérifiez CORS/URL")})}
+    else m.innerHTML='<div class="playerError">HLS non supporté par ce navigateur.</div>';
+  } else v.src=u;
+}
+function generate(){
+  cfg={a:by("a").value||"Combattant A",b:by("b").value||"Combattant B",date:by("date").value||"",price:Number(by("price").value||0),code:by("code").value||"847291",viewers:Number(by("viewers").value||0),stream:by("stream").value.trim(),provider:by("provider").value.trim()};
+  renderCfg(); const base=location.origin+location.pathname;shareUrl=base+"?mode=watch&cfg="+encodeURIComponent(enc(cfg));by("share").textContent=shareUrl;toast("Lien spectateur généré")
+}
+async function copyShare(){if(!shareUrl)return toast("Générez d'abord un lien");await navigator.clipboard.writeText(shareUrl);toast("Lien copié")}
+function openShare(){if(!shareUrl)return toast("Générez d'abord un lien");window.open(shareUrl,"_blank")}
+function toast(t){const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)}
+readCfg();
+let demo=482351;setInterval(()=>{demo+=Math.floor(Math.random()*35);if(by("kViewers"))by("kViewers").textContent=demo.toLocaleString("fr-FR")},2500);
+</script>
+</body>
+</html>
