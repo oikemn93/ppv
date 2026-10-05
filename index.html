@@ -55,7 +55,7 @@
       <button class="ghost" onclick="go('home')">← Retour</button>
       <h2 style="font-size:38px;margin-bottom:4px">Acheter le pass</h2>
       <p class="muted"><span id="cTitle">Modou Lô vs Siteu</span> — Direct</p>
-      <div class="demo">MODE DÉMONSTRATION — aucun argent réel n'est débité.</div>
+      <div class="demo">MODE DÉMONSTRATION — aucun argent réel n'est débité.<br><b>1 code PPV = 1 appareil actif à la fois.</b></div>
       <div class="card">
         <div class="row"><span>Pass Pay-Per-View</span><b><span id="cPrice">2 000</span> FCFA</b></div>
         <div class="row"><span>Frais</span><b>0 FCFA</b></div>
@@ -79,7 +79,7 @@
       <div id="lock" class="lock">
         <div class="pill">ACCÈS PAY-PER-VIEW</div>
         <h2 style="font-size:40px;margin-bottom:4px">Entrez votre code</h2>
-        <p class="muted">Le code reçu après l'achat du pass.</p>
+        <p class="muted">Le code reçu après l'achat du pass. Un code ne peut être actif que sur un seul appareil à la fois.</p>
         <input id="codeInput" class="codeinput" maxlength="8" inputmode="numeric" placeholder="000000"/>
         <button class="cta full" onclick="unlock()">ACCÉDER AU DIRECT</button>
         <p id="codeErr" style="color:#ff7584"></p>
@@ -131,7 +131,7 @@
           <div class="label">STATUT PROTOTYPE</div>
           <div class="row"><span>Player HLS</span><b class="status">✓ PRÊT</b></div>
           <div class="row"><span>Wave / Orange</span><b style="color:var(--gold)">SIMULÉ</b></div>
-          <div class="row"><span>Protection PPV</span><b style="color:var(--gold)">DÉMO</b></div>
+          <div class="row"><span>Protection PPV</span><b class="status">1 APPAREIL / CODE</b></div>
           <div class="row"><span>Supabase</span><b style="color:var(--gold)">À CONNECTER</b></div>
         </div>
       </div>
@@ -154,6 +154,45 @@
 let cfg={a:"Modou Lô",b:"Siteu",date:"Samedi • 20h00 GMT",price:2000,code:"847291",viewers:28452,stream:"",provider:""};
 let shareUrl="";
 let hls=null;
+const SESSION_API="https://ppv-sessions.n2yservice.workers.dev";
+let sessionToken=null;
+let heartbeatTimer=null;
+let deviceId=localStorage.getItem("ppv_device_id");
+if(!deviceId){
+  deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2));
+  localStorage.setItem("ppv_device_id",deviceId);
+}
+function eventKey(){return [cfg.a,cfg.b,cfg.date].join("|")}
+async function sessionCall(path, extra={}){
+  const r=await fetch(SESSION_API+path,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({code:String(cfg.code),eventKey:eventKey(),deviceId,token:sessionToken,...extra})
+  });
+  let data={}; try{data=await r.json()}catch(e){}
+  return {ok:r.ok,status:r.status,data};
+}
+function stopPlayer(reason){
+  if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}
+  if(hls){hls.destroy();hls=null}
+  const v=by("playerMount").querySelector("video"); if(v)try{v.pause()}catch(e){}
+  by("playerMount").innerHTML="";
+  by("playerWrap").style.display="none";
+  by("lock").style.display="block";
+  by("codeErr").textContent=reason||"Session terminée.";
+  sessionToken=null;
+}
+function startHeartbeat(){
+  if(heartbeatTimer)clearInterval(heartbeatTimer);
+  heartbeatTimer=setInterval(async()=>{
+    try{
+      const r=await sessionCall("/heartbeat");
+      if(!r.ok&&r.status===409){
+        stopPlayer("Ce code est maintenant utilisé sur un autre appareil. Le direct a été arrêté sur cet appareil.");
+      }
+    }catch(e){}
+  },5000);
+}
 function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
 function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
 function readCfg(){
@@ -183,9 +222,25 @@ function pay(){
   setTimeout(()=>{document.querySelector("#checkout .card").style.display="none";document.querySelectorAll(".payopt").forEach(x=>x.style.display="none");document.querySelector("#checkout .cta.full").style.display="none";by("paid").style.display="block";toast("Paiement confirmé ✓")},800)
 }
 function openAfterPay(){by("codeInput").value=cfg.code;go("watch");unlock()}
-function unlock(){
+async function unlock(){
   if(by("codeInput").value.trim()!=String(cfg.code)){by("codeErr").textContent="Code PPV invalide.";return}
-  by("codeErr").textContent="";by("lock").style.display="none";by("playerWrap").style.display="block";mountPlayer();toast("Accès au direct autorisé")
+  by("codeErr").textContent="Vérification de l'appareil...";
+  try{
+    const r=await sessionCall("/login");
+    if(!r.ok||!r.data.token){
+      by("codeErr").textContent="Impossible de vérifier la session. Réessayez.";
+      return;
+    }
+    sessionToken=r.data.token;
+    by("codeErr").textContent="";
+    by("lock").style.display="none";
+    by("playerWrap").style.display="block";
+    mountPlayer();
+    startHeartbeat();
+    toast("Accès autorisé sur cet appareil");
+  }catch(e){
+    by("codeErr").textContent="Connexion au service de session impossible.";
+  }
 }
 function youtubeId(u){try{const x=new URL(u);if(x.hostname.includes("youtu.be"))return x.pathname.slice(1);if(x.hostname.includes("youtube.com"))return x.searchParams.get("v")||x.pathname.split("/").pop()}catch(e){}return null}
 function vimeoId(u){const m=String(u).match(/vimeo\.com\/(?:video\/)?(\d+)/);return m&&m[1]}
