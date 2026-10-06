@@ -165,7 +165,7 @@ function startPlaybackRefresh(){
    if(hls){hls.loadSource(d.playback_url)}
    else{const v=by("player").querySelector("video");if(v)v.src=d.playback_url}
   }catch(e){stop("Votre autorisation de lecture a expiré. Entrez à nouveau votre code.")}
- },20*60*1000)
+ },8*60*1000)
 }
 function startGuard(code){const g=by("guard");g.textContent="PPV GUARD • "+maskCode(code)+" • "+String(sessionToken||"").slice(0,6).toUpperCase();const move=()=>{g.style.left=(6+Math.random()*62)+"%";g.style.top=(10+Math.random()*65)+"%"};move();guardTimer=setInterval(move,9000)}
 function stop(reason){if(heartbeat)clearInterval(heartbeat);if(guardTimer)clearInterval(guardTimer);if(playbackRefresh)clearInterval(playbackRefresh);if(hls){hls.destroy();hls=null}by("player").innerHTML="";by("codeErr").textContent=reason;go("access");sessionToken=null;currentCode=""}
