@@ -1,450 +1,116 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#090909" />
-  <title>Làmb Live — PPV Sénégal</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
-  <style>
-    :root{--bg:#080808;--card:#121212;--card2:#171717;--line:#282828;--txt:#f7f7f5;--muted:#9b9b95;--gold:#f5c451;--red:#ef233c;--green:#1bc47d}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 85% 0,#37150d 0,transparent 28%),radial-gradient(circle at 0 35%,#251c00 0,transparent 25%),var(--bg);color:var(--txt);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    button,input,select,textarea{font:inherit}.wrap{width:min(1160px,calc(100% - 28px));margin:auto}.nav{height:70px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:1000;font-size:23px;letter-spacing:-1.2px}.brand b{color:var(--gold)}.navlinks{display:flex;gap:8px}.navbtn,.ghost{border:1px solid var(--line);background:#ffffff0b;color:white;border-radius:12px;padding:10px 13px;font-weight:750}.navbtn.active{background:white;color:#070707}.page{display:none;padding-bottom:70px}.page.active{display:block}
-    .hero{min-height:610px;border:1px solid var(--line);border-radius:28px;padding:36px;display:flex;align-items:flex-end;position:relative;overflow:hidden;background:linear-gradient(135deg,#191919,#090909)}.hero:before{content:"LÀMB";position:absolute;right:-24px;top:45px;font-size:180px;font-weight:1000;opacity:.025}.hero:after{content:"";position:absolute;width:470px;height:470px;border-radius:50%;background:#f5c45118;filter:blur(30px);right:-90px;top:-80px}.heroContent{position:relative;z-index:2;max-width:760px}.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid #ef233c42;background:#ef233c1b;color:#ff7d8d;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:850}.dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 15px var(--red)}h1{font-size:clamp(52px,9vw,104px);line-height:.86;letter-spacing:-6px;margin:18px 0;text-transform:uppercase}.vs{color:var(--gold);font-size:.35em;letter-spacing:-1px}.meta{display:flex;gap:18px;flex-wrap:wrap;color:#c4c4bf;margin:24px 0}.price{font-size:36px;font-weight:1000}.price small{font-size:13px;color:var(--muted);font-weight:600}.cta{border:0;background:var(--gold);color:#111;border-radius:15px;padding:16px 20px;font-weight:950;margin-top:14px}.cta.dark{background:white}.cta.full{width:100%}.section{margin-top:48px}.section h2{font-size:32px;letter-spacing:-1.2px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{border:1px solid var(--line);background:#111d;border-radius:20px;padding:20px}.label{color:var(--muted);font-size:12px;font-weight:750;letter-spacing:.5px}.big{font-size:31px;font-weight:1000;margin-top:5px}.muted{color:var(--muted)}.demo{border:1px solid #344a2f;background:#162013;color:#b7e6ad;border-radius:13px;padding:13px;font-size:13px;margin:16px 0}
-    .admin{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:24px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:7px}.field.wide{grid-column:1/-1}.field label{font-size:12px;color:var(--muted);font-weight:800}.field input,.field select,.field textarea{width:100%;border:1px solid #333;background:#0d0d0d;color:white;border-radius:12px;padding:13px;outline:none}.field input:focus,.field textarea:focus{border-color:var(--gold)}.sharebox{word-break:break-all;background:#070707;border:1px dashed #444;border-radius:12px;padding:13px;font-size:12px;color:#c8c8c2;min-height:72px}.actions{display:flex;gap:9px;flex-wrap:wrap}.mini{border:1px solid var(--line);background:#202020;color:white;padding:11px 13px;border-radius:11px;font-weight:750}
-    .checkout{max-width:620px;margin:45px auto}.payopt{width:100%;display:flex;justify-content:space-between;border:2px solid transparent;background:#171717;color:white;border-radius:14px;padding:17px;margin:8px 0}.payopt.sel{border-color:var(--gold)}.code{font-size:clamp(40px,12vw,68px);font-weight:1000;letter-spacing:8px;color:var(--gold);text-align:center;background:#050505;border:1px dashed #555;border-radius:19px;padding:18px;margin:22px 0}
-    .watch{max-width:1020px;margin:26px auto}.lock{max-width:500px;margin:80px auto;text-align:center}.codeinput{width:100%;background:#121212;border:1px solid #333;color:white;border-radius:14px;padding:17px;text-align:center;font-size:28px;font-weight:950;letter-spacing:8px;margin:17px 0}.playerWrap{display:none}.playerBox{aspect-ratio:16/9;background:#050505;border:1px solid #2b2b2b;border-radius:20px;overflow:hidden;position:relative}.playerBox video,.playerBox iframe{width:100%;height:100%;border:0;background:black}.livetag{position:absolute;z-index:3;top:14px;left:14px;background:var(--red);padding:7px 9px;border-radius:8px;font-size:11px;font-weight:950}.viewer{position:absolute;z-index:3;top:14px;right:14px;background:#000c;padding:7px 9px;border-radius:8px;font-size:12px}.playerError{padding:30px;color:#ff9a9a}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.status{color:var(--green)}.row{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid var(--line)}
-    .eventGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.eventCard{border:1px solid var(--line);background:#111d;border-radius:20px;padding:18px;cursor:pointer;transition:.2s}.eventCard:hover{transform:translateY(-2px);border-color:#5a4923}.eventCard h3{font-size:23px;margin:8px 0 5px}.eventCard .eventPrice{color:var(--gold);font-weight:950;font-size:20px}.eventCard .eventMeta{color:var(--muted);font-size:13px}.toast{position:fixed;bottom:18px;right:18px;background:white;color:black;border-radius:13px;padding:13px 16px;font-weight:800;transform:translateY(100px);transition:.25s;z-index:99}.toast.on{transform:none}
-    @media(max-width:820px){.wrap{width:min(100% - 20px,1160px)}.nav{height:62px}.navbtn span{display:none}.hero{min-height:560px;padding:22px}.hero:before{font-size:100px}h1{letter-spacing:-3px}.grid3,.eventGrid,.admin,.kpis{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}.hero .cta{width:100%}}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#090909"/>
+<title>LÀMB LIVE — PPV Sénégal</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
+<style>
+:root{--bg:#080808;--card:#111;--line:#272727;--txt:#f7f7f2;--muted:#999;--accent:#f5c451;--red:#ef233c;--green:#20c982}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0,#35150d 0,transparent 26%),var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}.shell{width:min(1160px,calc(100% - 28px));margin:auto}.nav{height:70px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:1000;font-size:23px;letter-spacing:-1.2px}.brand b{color:var(--accent)}.navActions{display:flex;gap:8px}.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:900;cursor:pointer}.btn.primary{background:var(--accent);color:#111}.btn.ghost{background:#fff;color:#111}.btn.outline{background:#ffffff0a;color:#fff;border:1px solid var(--line)}.page{display:none;padding-bottom:70px}.page.active{display:block}
+.hero{min-height:620px;border:1px solid var(--line);border-radius:28px;padding:36px;display:flex;align-items:flex-end;position:relative;overflow:hidden;background:linear-gradient(135deg,#181818,#090909)}.hero.hasPoster{background-size:cover;background-position:center}.hero.hasPoster:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.92))}.heroContent{position:relative;z-index:2;max-width:760px}.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid #ef233c44;background:#ef233c1c;color:#ff8392;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:850}.dot{width:8px;height:8px;background:var(--red);border-radius:50%;box-shadow:0 0 14px var(--red)}h1{font-size:clamp(46px,8vw,94px);line-height:.9;letter-spacing:-5px;margin:18px 0}.meta{display:flex;gap:18px;flex-wrap:wrap;color:#c3c3bd;margin:20px 0}.price{font-size:34px;font-weight:1000}.price small{font-size:13px;color:var(--muted)}.heroActions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.section{margin-top:48px}.section h2{font-size:32px;letter-spacing:-1px}.events{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.event{border:1px solid var(--line);background:#111d;border-radius:20px;overflow:hidden;cursor:pointer;transition:.2s}.event:hover{transform:translateY(-3px);border-color:#5e4b20}.eventPoster{height:180px;background:linear-gradient(135deg,#221a0a,#171717);background-size:cover;background-position:center}.eventBody{padding:17px}.event h3{font-size:22px;margin:5px 0}.eventMeta{color:var(--muted);font-size:13px}.eventPrice{color:var(--accent);font-size:20px;font-weight:950;margin-top:10px}
+.panel{max-width:620px;margin:46px auto}.card{border:1px solid var(--line);background:#111d;border-radius:20px;padding:21px}.payopt{width:100%;margin:8px 0;border:1px solid #333;background:#171717;color:#fff;padding:16px;border-radius:14px;text-align:left}.notice{border:1px solid #34482f;background:#142013;color:#bce7b3;padding:13px;border-radius:13px;font-size:13px;margin:16px 0}.code{font-size:clamp(36px,11vw,66px);font-weight:1000;letter-spacing:7px;color:var(--accent);text-align:center;border:1px dashed #555;background:#050505;border-radius:18px;padding:17px;margin:20px 0}.codeInput{width:100%;padding:17px;border-radius:14px;border:1px solid #333;background:#111;color:#fff;text-align:center;font-size:30px;font-weight:950;letter-spacing:7px;text-transform:uppercase}.err{color:#ff7584;margin-top:10px}
+.playerWrap{max-width:1050px;margin:30px auto}.playerBox{aspect-ratio:16/9;background:#050505;border:1px solid #292929;border-radius:22px;overflow:hidden;position:relative}.playerBox video,.playerBox iframe{width:100%;height:100%;border:0;background:#000}.liveTag{position:absolute;z-index:4;top:14px;left:14px;background:var(--red);border-radius:8px;padding:7px 9px;font-size:11px;font-weight:950}.guard{position:absolute;z-index:5;left:12%;top:18%;pointer-events:none;background:#0009;border:1px solid #ffffff2a;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:850;color:#fff;transition:all .8s}.playerMsg{padding:30px;color:#ffb0b9}.footer{padding:34px 0 50px;color:#777;font-size:13px;display:flex;justify-content:space-between;gap:20px}.footer a{color:#999;text-decoration:none}
+.toast{position:fixed;right:18px;bottom:18px;background:#fff;color:#111;border-radius:13px;padding:13px 16px;font-weight:850;transform:translateY(100px);transition:.25s;z-index:99}.toast.on{transform:none}
+@media(max-width:820px){.shell{width:min(100% - 20px,1160px)}.nav{height:62px}.hero{min-height:560px;padding:22px}h1{letter-spacing:-3px}.events{grid-template-columns:1fr}.heroActions .btn{width:100%}.footer{flex-direction:column}}
+</style>
 </head>
 <body>
-<div class="wrap">
-  <nav class="nav">
-    <div class="brand">LÀMB<b>LIVE</b></div>
-    <div class="navlinks">
-      <button class="navbtn active" data-page="home" onclick="go('home',this)">🏠 <span>Accueil</span></button>
-      <button class="navbtn" data-page="watch" onclick="go('watch',this)">▶ <span>Regarder</span></button>
-      <button class="navbtn" data-page="admin" onclick="go('admin',this)">⚙ <span>Promoteur</span></button>
-    </div>
-  </nav>
+<div class="shell">
+<nav class="nav"><div class="brand">LÀMB<b>LIVE</b></div><div class="navActions"><button class="btn outline" onclick="showAccess()">Entrer un code</button></div></nav>
 
-  <main id="home" class="page active">
-    <section class="hero">
-      <div class="heroContent">
-        <div class="pill"><span class="dot"></span> PROCHAIN GRAND COMBAT</div>
-        <h1><span id="hA">MODOU LÔ</span> <span class="vs">VS</span> <span id="hB">SITEU</span></h1>
-        <div class="meta"><span>📅 <b id="hDate">Samedi • 20h00 GMT</b></span><span>📍 Dakar, Sénégal</span><span>📺 Direct + Replay</span></div>
-        <div class="price"><span id="hPrice">2 000</span> FCFA <small>/ accès PPV</small></div>
-        <button class="cta" onclick="startCheckout()">ACHETER LE PASS</button>
-        <button class="cta dark" onclick="go('watch')">J'AI DÉJÀ UN CODE</button>
-      </div>
-    </section>
+<main id="home" class="page active">
+<section id="hero" class="hero"><div class="heroContent">
+<div class="pill"><span class="dot"></span><span id="heroStatus">ÉVÉNEMENT PPV</span></div>
+<h1 id="heroTitle">Chargement…</h1>
+<div class="meta"><span id="heroDate"></span><span id="heroVenue"></span><span>Direct + replay selon événement</span></div>
+<div class="price"><span id="heroPrice">—</span> FCFA <small>/ accès</small></div>
+<div class="heroActions"><button class="btn primary" onclick="checkout()">ACHETER LE PASS</button><button class="btn ghost" onclick="showAccess()">J'AI UN CODE</button></div>
+</div></section>
 
-    <section class="section">
-      <div class="pill">PROGRAMME PPV</div>
-      <h2>Plusieurs combats, une seule plateforme.</h2>
-      <div id="eventGrid" class="eventGrid"></div>
-    </section>
+<section class="section"><div class="pill">PROGRAMME</div><h2>Les prochains combats</h2><div id="events" class="events"></div></section>
+<section class="section"><div class="card"><div class="pill">PPV GUARD</div><h2>Un accès pensé pour protéger la valeur du direct.</h2><p style="color:var(--muted);max-width:760px">Un code court fort, un seul appareil actif à la fois et un watermark de session mobile dans le player. Le transfert contrôlé vers TV sera la prochaine brique.</p></div></section>
+</main>
 
-    <section class="section">
-      <h2>Le direct, partout au Sénégal et dans la diaspora.</h2>
-      <div class="grid3">
-        <div class="card"><div class="label">PAIEMENT</div><div class="big">Wave</div><p class="muted">Parcours de paiement mobile ultra-court.</p></div>
-        <div class="card"><div class="label">PAIEMENT</div><div class="big">Orange Money</div><p class="muted">Pensé pour les usages locaux.</p></div>
-        <div class="card"><div class="label">STREAMING</div><div class="big">Faible latence</div><p class="muted">HLS / LL-HLS, mobile, ordinateur et TV.</p></div>
-      </div>
-    </section>
-  </main>
+<main id="checkout" class="page"><div class="panel">
+<button class="btn outline" onclick="go('home')">← Retour</button>
+<h2 style="font-size:38px;margin-bottom:4px">Acheter votre pass</h2><p id="checkoutTitle" style="color:var(--muted)"></p>
+<div class="notice">Démo commerciale. Le checkout PayDunya Sandbox prend le relais dès que les clés sont configurées.</div>
+<div class="card"><div style="display:flex;justify-content:space-between"><span>Pass PPV</span><b><span id="checkoutPrice"></span> FCFA</b></div></div>
+<button class="payopt">🌊 Wave</button><button class="payopt">🟠 Orange Money</button><button class="payopt">💳 Carte bancaire</button>
+<button class="btn primary" style="width:100%;margin-top:12px" onclick="pay()">PAYER MAINTENANT</button>
+<div id="paid" style="display:none;text-align:center"><h2>Paiement confirmé</h2><p style="color:var(--muted)">Votre code PPV personnel :</p><div class="code" id="issuedCode"></div><button class="btn primary" onclick="openIssued()">REGARDER LE DIRECT</button></div>
+</div></main>
 
-  <main id="checkout" class="page">
-    <div class="checkout">
-      <button class="ghost" onclick="go('home')">← Retour</button>
-      <h2 style="font-size:38px;margin-bottom:4px">Acheter le pass</h2>
-      <p class="muted"><span id="cTitle">Modou Lô vs Siteu</span> — Direct</p>
-      <div class="demo">MODE DÉMONSTRATION — aucun argent réel n'est débité.<br><b>1 code PPV = 1 appareil actif à la fois.</b></div>
-      <div class="card">
-        <div class="row"><span>Pass Pay-Per-View</span><b><span id="cPrice">2 000</span> FCFA</b></div>
-        <div class="row"><span>Frais</span><b>0 FCFA</b></div>
-      </div>
-      <button class="payopt sel" onclick="selPay(this)">🌊 <b>Wave</b><span>›</span></button>
-      <button class="payopt" onclick="selPay(this)">🟠 <b>Orange Money</b><span>›</span></button>
-      <button class="payopt" onclick="selPay(this)">💳 <b>Visa / Mastercard</b><span>›</span></button>
-      <button class="cta full" onclick="pay()">PAYER <span id="cButtonPrice">2 000</span> FCFA</button>
-      <div id="paid" style="display:none;text-align:center">
-        <div style="font-size:55px;margin-top:24px">✓</div>
-        <h2>Paiement confirmé</h2>
-        <p class="muted">Votre code d'accès PPV :</p>
-        <div class="code" id="paidCode">123456</div>
-        <button class="cta" onclick="openAfterPay()">REGARDER LE DIRECT</button>
-      </div>
-    </div>
-  </main>
+<main id="access" class="page"><div class="panel">
+<button class="btn outline" onclick="go('home')">← Retour</button>
+<div class="pill">ACCÈS PRIVÉ</div><h2 style="font-size:40px;margin-bottom:4px">Votre code PPV</h2><p style="color:var(--muted)">6 caractères — lettres, chiffres et symboles. Un seul appareil actif à la fois.</p>
+<input id="codeInput" class="codeInput" maxlength="6" autocomplete="one-time-code" placeholder="K7#P2!"/>
+<button class="btn primary" style="width:100%;margin-top:12px" onclick="unlock()">ACCÉDER AU DIRECT</button><div id="codeErr" class="err"></div>
+</div></main>
 
-  <main id="watch" class="page">
-    <div class="watch">
-      <div id="lock" class="lock">
-        <div class="pill">ACCÈS PAY-PER-VIEW</div>
-        <h2 style="font-size:40px;margin-bottom:4px">Entrez votre code</h2>
-        <p class="muted">Le code reçu après l'achat du pass. Un code ne peut être actif que sur un seul appareil à la fois.</p>
-        <input id="codeInput" class="codeinput" maxlength="8" inputmode="numeric" placeholder="000000"/>
-        <button class="cta full" onclick="unlock()">ACCÉDER AU DIRECT</button>
-        <p id="codeErr" style="color:#ff7584"></p>
-      </div>
-      <div id="playerWrap" class="playerWrap">
-        <div class="playerBox">
-          <div class="livetag">● EN DIRECT</div>
-          <div class="viewer">👁 <span id="viewerCount">28 452</span></div>
-          <div id="playerMount" style="width:100%;height:100%"></div>
-        </div>
-        <div style="margin-top:18px">
-          <div class="pill">LIVE</div>
-          <h2 style="font-size:34px;margin:10px 0 5px" id="wTitle">Modou Lô vs Siteu</h2>
-          <p class="muted" id="wMeta">Dakar • Sénégal</p>
-        </div>
-      </div>
-    </div>
-  </main>
+<main id="watch" class="page"><div class="playerWrap">
+<div class="playerBox"><div class="liveTag">● EN DIRECT</div><div id="guard" class="guard">PPV GUARD</div><div id="player"></div></div>
+<h2 id="watchTitle" style="font-size:34px;margin-bottom:4px"></h2><p id="watchMeta" style="color:var(--muted)"></p>
+</div></main>
 
-  <main id="admin" class="page">
-    <div style="margin-top:26px">
-      <div class="pill">ADMINISTRATION DÉMO</div>
-      <h2 style="font-size:42px;margin:10px 0 4px">Préparer un direct</h2>
-      <p class="muted">Collez le lien fourni par la chaîne ou le promoteur, puis générez le lien à partager aux spectateurs.</p>
-    </div>
-    <div class="admin">
-      <div class="card">
-        <div class="formgrid">
-          <div class="field"><label>COMBATTANT A</label><input id="a" value="Modou Lô"></div>
-          <div class="field"><label>COMBATTANT B</label><input id="b" value="Siteu"></div>
-          <div class="field"><label>DATE / HEURE</label><input id="date" type="datetime-local" value="2026-10-10T20:00"></div>
-          <div class="field"><label>PRIX PPV (FCFA)</label><input id="price" type="number" value="2000"></div>
-          <div class="field"><label>CODE PPV DÉMO (optionnel)</label><input id="code" placeholder="Ex : 847291"></div><div class="field"><label>PIN ADMIN</label><input id="adminPin" type="password" placeholder="PIN de démonstration"></div>
-          <div class="field"><label>SPECTATEURS DÉMO</label><input id="viewers" type="number" value="28452"></div>
-          <div class="field wide"><label>URL DU LIVE</label><input id="stream" placeholder="https://.../master.m3u8 ou lien YouTube/Vimeo/MP4"></div>
-          <div class="field wide"><label>FOURNISSEUR / CHAÎNE</label><input id="provider" placeholder="Ex : RTS, 2STV, promoteur..."></div>
-        </div>
-        <div class="demo">Pour HLS/LL-HLS, privilégiez une URL HTTPS se terminant par <b>.m3u8</b>. Le serveur vidéo doit autoriser CORS depuis le domaine de cette démo. RTMP/SRT ne sont pas lisibles directement dans un navigateur.</div>
-        <div class="actions">
-          <button class="cta" style="flex:1" onclick="saveEvent()">AJOUTER / METTRE À JOUR LE COMBAT</button>
-          <button class="cta dark" style="flex:1" onclick="generate()">GÉNÉRER LE LIEN SPECTATEUR</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="label">LIEN SPECTATEUR</div>
-        <div class="sharebox" id="share">Configurez un événement puis cliquez sur Générer.</div>
-        <div class="actions" style="margin-top:10px">
-          <button class="mini" onclick="copyShare()">Copier le lien</button>
-          <button class="mini" onclick="openShare()">Ouvrir le lien</button>
-        </div>
-        <div class="section" style="margin-top:28px">
-          <div class="label">STATUT PROTOTYPE</div>
-          <div class="row"><span>Player HLS</span><b class="status">✓ PRÊT</b></div>
-          <div class="row"><span>PayDunya</span><b style="color:var(--gold)">SANDBOX PRÊT</b></div>
-          <div class="row"><span>Protection PPV</span><b class="status">1 APPAREIL / CODE</b></div>
-          <div class="row"><span>Supabase</span><b style="color:var(--gold)">À CONNECTER</b></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="pill">DONNÉES DE DÉMONSTRATION</div>
-      <div class="kpis">
-        <div class="card"><div class="label">SPECTATEURS LIVE</div><div class="big" id="kViewers">482 351</div><span class="status">↑ 12,4 %</span></div>
-        <div class="card"><div class="label">PASS VENDUS</div><div class="big">367 843</div><span class="status">↑ 8,7 %</span></div>
-        <div class="card"><div class="label">CA DÉMO</div><div class="big">735,6 M</div><span class="muted">FCFA</span></div>
-        <div class="card"><div class="label">LATENCE CIBLE</div><div class="big">3–5 s</div><span class="status">LL-HLS</span></div>
-      </div>
-    </div>
-  </main>
-</div>
-<div class="toast" id="toast"></div>
-
+<footer class="footer"><span>© LÀMB LIVE — Prototype PPV Sénégal</span><a href="/backoffice">Espace professionnels</a></footer>
+</div><div id="toast" class="toast"></div>
 <script>
 const SUPABASE_URL="https://kfsjemncncergnotngmw.supabase.co";
 const SUPABASE_KEY="sb_publishable_1Q4aU2_nsIySRPsCpKu4CA_C-x89d1m";
-const MANAGE_URL=SUPABASE_URL+"/functions/v1/manage-event";
 const ACCESS_URL=SUPABASE_URL+"/functions/v1/stream-access";
 const DEMO_PURCHASE_URL=SUPABASE_URL+"/functions/v1/demo-purchase";
-let eventCache=[];
-let cfg={id:null,slug:"",a:"Modou Lô",b:"Siteu",starts_at:"2026-10-10T20:00:00Z",price:2000,viewers:28452,stream:"",provider:""};
-
-function formatEventDate(value){
-  if(!value)return "À venir";
-  const d=new Date(value);
-  if(Number.isNaN(d.getTime()))return String(value);
-  return new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit",timeZone:"UTC"}).format(d)+" GMT";
-}
-function toLocalInput(value){
-  if(!value)return "";
-  const d=new Date(value); if(Number.isNaN(d.getTime()))return "";
-  return d.toISOString().slice(0,16);
-}
-function mapEvent(row){
-  return {id:row.id,slug:row.slug,a:row.fighter_a,b:row.fighter_b,starts_at:row.starts_at,price:row.price_fcfa,viewers:0,stream:"",provider:""};
-}
-async function loadEvents(){
-  try{
-    const r=await fetch(SUPABASE_URL+"/rest/v1/events?select=id,slug,fighter_a,fighter_b,starts_at,price_fcfa,status&status=in.(published,live,ended)&order=starts_at.asc",{
-      headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}
-    });
-    if(!r.ok)throw new Error("catalog");
-    eventCache=(await r.json()).map(mapEvent);
-    renderEvents();
-    const q=new URLSearchParams(location.search);
-    const requested=q.get("event");
-    const found=eventCache.find(x=>x.id===requested||x.slug===requested);
-    if(found)cfg={...found};
-    else if(!cfg.id&&eventCache[0])cfg={...eventCache[0]};
-    renderCfg();
-    populateAdmin();
-  }catch(e){
-    toast("Catalogue Supabase temporairement indisponible");
-  }
-}
-function renderEvents(){
-  const grid=by("eventGrid"); if(!grid)return;
-  grid.innerHTML=eventCache.map(e=>`
-    <div class="eventCard" onclick="selectEvent('${e.id}')">
-      <div class="pill">PPV</div>
-      <h3>${escapeHtml(e.a)} <span style="color:var(--gold)">vs</span> ${escapeHtml(e.b)}</h3>
-      <div class="eventMeta">📅 ${escapeHtml(formatEventDate(e.starts_at))}</div>
-      <div class="eventPrice">${Number(e.price||0).toLocaleString("fr-FR")} FCFA</div>
-    </div>`).join("");
-}
-function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
-function selectEvent(id){
-  const e=eventCache.find(x=>x.id===id);if(!e)return;
-  cfg={...e};renderCfg();populateAdmin();scrollTo({top:0,behavior:"smooth"});
-}
-function populateAdmin(){
-  if(!by("a"))return;
-  by("a").value=cfg.a||"";
-  by("b").value=cfg.b||"";
-  by("date").value=toLocalInput(cfg.starts_at);
-  by("price").value=cfg.price||0;
-  by("viewers").value=cfg.viewers||0;
-  by("stream").value="";
-  by("provider").value=cfg.provider||"";
-  by("code").value="";
-}
-async function saveEvent(silent=false){
-  const next=readAdminCfg();
-  const pin=by("adminPin").value.trim();
-  if(!pin){toast("Entrez le PIN admin");return null}
-  try{
-    const r=await fetch(MANAGE_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-admin-pin":pin},
-      body:JSON.stringify({
-        slug:next.slug,
-        fighter_a:next.a,
-        fighter_b:next.b,
-        starts_at:next.starts_at||null,
-        price_fcfa:next.price,
-        stream_url:next.stream,
-        provider:next.provider,
-        code:next.code,
-        status:"published"
-      })
-    });
-    const data=await r.json();
-    if(!r.ok)throw new Error(data.error||"save_failed");
-    cfg={...mapEvent(data.event),stream:"",provider:next.provider};
-    await loadEvents();
-    if(!silent)toast("Combat enregistré dans Supabase");
-    return cfg;
-  }catch(e){
-    toast(e.message==="unauthorized"?"PIN admin incorrect":"Impossible d'enregistrer le combat");
-    return null;
-  }
-}
-let shareUrl="";
-let hls=null;
 const SESSION_API="https://ppv-sessions.n2yservice.workers.dev";
-let sessionToken=null;
-let heartbeatTimer=null;
-let deviceId=localStorage.getItem("ppv_device_id");
-if(!deviceId){
-  deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2));
-  localStorage.setItem("ppv_device_id",deviceId);
+let events=[],current=null,hls=null,sessionToken=null,heartbeat=null,guardTimer=null;
+let deviceId=localStorage.getItem("ppv_device_id");if(!deviceId){deviceId=crypto.randomUUID();localStorage.setItem("ppv_device_id",deviceId)}
+
+function by(x){return document.getElementById(x)} function toast(t){const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)}
+function go(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));by(id).classList.add("active");scrollTo({top:0,behavior:"smooth"})}
+function fmtDate(v){if(!v)return"Date à venir";return new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit",timeZone:"UTC"}).format(new Date(v))+" GMT"}
+function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+async function load(){
+ const r=await fetch(SUPABASE_URL+"/rest/v1/events?select=id,slug,title,fighter_a,fighter_b,starts_at,venue,poster_url,description,price_fcfa,status,promoters(name,slug,logo_url,accent_color)&status=in.(published,live)&order=starts_at.asc",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+ events=await r.json();renderEvents();
+ const slug=location.pathname.startsWith("/e/")?decodeURIComponent(location.pathname.slice(3)):new URLSearchParams(location.search).get("event");
+ current=events.find(e=>e.slug===slug||e.id===slug)||events[0]||null;renderCurrent();
 }
-function eventKey(){return cfg.id||cfg.slug||[cfg.a,cfg.b,cfg.starts_at].join("|")}
-async function sessionCall(path, extra={}){
-  const r=await fetch(SESSION_API+path,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({code:String(extra.code||by("codeInput")?.value||""),eventKey:eventKey(),deviceId,token:sessionToken,...extra})
-  });
-  let data={}; try{data=await r.json()}catch(e){}
-  return {ok:r.ok,status:r.status,data};
-}
-function stopPlayer(reason){
-  if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}
-  if(hls){hls.destroy();hls=null}
-  const v=by("playerMount").querySelector("video"); if(v)try{v.pause()}catch(e){}
-  by("playerMount").innerHTML="";
-  by("playerWrap").style.display="none";
-  by("lock").style.display="block";
-  by("codeErr").textContent=reason||"Session terminée.";
-  sessionToken=null;
-}
-function startHeartbeat(){
-  if(heartbeatTimer)clearInterval(heartbeatTimer);
-  heartbeatTimer=setInterval(async()=>{
-    try{
-      const r=await sessionCall("/heartbeat");
-      if(!r.ok&&r.status===409){
-        stopPlayer("Ce code est maintenant utilisé sur un autre appareil. Le direct a été arrêté sur cet appareil.");
-      }
-    }catch(e){}
-  },5000);
-}
-function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
-function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
-function renderCfg(){
-  by("hA").textContent=(cfg.a||"").toUpperCase(); by("hB").textContent=(cfg.b||"").toUpperCase(); by("hDate").textContent=formatEventDate(cfg.starts_at);
-  const p=Number(cfg.price||0).toLocaleString("fr-FR"); by("hPrice").textContent=p; by("cPrice").textContent=p; by("cButtonPrice").textContent=p;
-  by("cTitle").textContent=(cfg.a||"")+" vs "+(cfg.b||""); by("wTitle").textContent=(cfg.a||"")+" vs "+(cfg.b||""); by("wMeta").textContent=(cfg.provider?cfg.provider+" • ":"")+"Dakar • Sénégal";
-  by("viewerCount").textContent=Number(cfg.viewers||0).toLocaleString("fr-FR");
-}
-function by(id){return document.getElementById(id)}
-function go(id,btn){
-  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active")); by(id).classList.add("active");
-  document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));
-  const nav=btn||document.querySelector('[data-page="'+id+'"]'); if(nav)nav.classList.add("active");
-  scrollTo({top:0,behavior:"smooth"});
-}
-function startCheckout(){go("checkout")}
-function selPay(el){document.querySelectorAll(".payopt").forEach(x=>x.classList.remove("sel"));el.classList.add("sel")}
+function renderEvents(){by("events").innerHTML=events.map(e=>`<article class="event" onclick="selectEvent('${e.slug}')"><div class="eventPoster" style="${e.poster_url?"background-image:url('"+esc(e.poster_url)+"')":""}"></div><div class="eventBody"><div class="eventMeta">${esc(e.promoters?.name||"Làmb Live")}</div><h3>${esc(e.title||e.fighter_a+" vs "+e.fighter_b)}</h3><div class="eventMeta">📅 ${esc(fmtDate(e.starts_at))}</div><div class="eventPrice">${Number(e.price_fcfa||0).toLocaleString("fr-FR")} FCFA</div></div></article>`).join("")}
+function selectEvent(slug){const e=events.find(x=>x.slug===slug);if(!e)return;current=e;history.pushState({}, "", "/e/"+encodeURIComponent(slug));renderCurrent();scrollTo({top:0,behavior:"smooth"})}
+function renderCurrent(){if(!current)return;document.documentElement.style.setProperty("--accent",current.promoters?.accent_color||"#f5c451");by("heroTitle").textContent=current.title||current.fighter_a+" vs "+current.fighter_b;by("heroDate").textContent="📅 "+fmtDate(current.starts_at);by("heroVenue").textContent=current.venue?"📍 "+current.venue:"📍 Sénégal";by("heroPrice").textContent=Number(current.price_fcfa||0).toLocaleString("fr-FR");by("checkoutTitle").textContent=current.title||current.fighter_a+" vs "+current.fighter_b;by("checkoutPrice").textContent=Number(current.price_fcfa||0).toLocaleString("fr-FR");by("watchTitle").textContent=current.title||current.fighter_a+" vs "+current.fighter_b;by("watchMeta").textContent=(current.promoters?.name||"")+" • "+(current.venue||"Sénégal");const hero=by("hero");if(current.poster_url){hero.classList.add("hasPoster");hero.style.backgroundImage="url('"+current.poster_url.replace(/'/g,"%27")+"')"}else{hero.classList.remove("hasPoster");hero.style.backgroundImage=""}}
+function checkout(){if(!current)return;go("checkout")} function showAccess(){if(!current&&events[0])current=events[0];go("access")}
 async function pay(){
-  toast("Initialisation PayDunya Sandbox...");
-  const base=location.origin+location.pathname;
-  const cfgParam=encodeURIComponent(enc(cfg));
-  try{
-    const r=await fetch("/api/paydunya-create",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        amount:Number(cfg.price||0),
-        description:"Pass PPV "+cfg.a+" vs "+cfg.b,
-        returnUrl:base+"?mode=watch&paydunya_return=1&event="+encodeURIComponent(cfg.id),
-        cancelUrl:base+"?mode=watch&payment_cancelled=1&event="+encodeURIComponent(cfg.id),
-        callbackUrl:base.replace(/\/$/,"")+"/api/paydunya-callback",
-        customData:{event_id:cfg.id||eventKey()}
-      })
-    });
-    const data=await r.json();
-    if(data.configured&&data.checkoutUrl&&data.invoiceToken){
-      localStorage.setItem("paydunya_invoice_token",data.invoiceToken);
-      location.href=data.checkoutUrl;
-      return;
-    }
-    simulatePaid("PayDunya Sandbox non configuré : paiement simulé pour la démo.");
-  }catch(e){
-    simulatePaid("PayDunya indisponible : paiement simulé pour la démo.");
-  }
+ if(!current)return;
+ toast("Préparation du paiement…");
+ try{
+  const base=location.origin;
+  const r=await fetch("/api/paydunya-create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({amount:current.price_fcfa,description:"Pass PPV "+(current.title||current.fighter_a+" vs "+current.fighter_b),returnUrl:base+"/e/"+current.slug+"?paydunya_return=1",cancelUrl:base+"/e/"+current.slug+"?payment_cancelled=1",callbackUrl:base+"/api/paydunya-callback",customData:{event_id:current.id}})});
+  const d=await r.json();
+  if(d.configured&&d.checkoutUrl){localStorage.setItem("paydunya_invoice_token",d.invoiceToken);location.href=d.checkoutUrl;return}
+ }catch(e){}
+ const r=await fetch(DEMO_PURCHASE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:current.id})});const d=await r.json();
+ if(!r.ok)return toast("Impossible de générer le pass");
+ by("issuedCode").textContent=d.code;localStorage.setItem("last_code_"+current.id,d.code);document.querySelector("#checkout .btn.primary[onclick='pay()']").style.display="none";by("paid").style.display="block";toast("Pass de démonstration généré");
 }
-async function simulatePaid(msg){
-  let code="";
-  try{
-    const r=await fetch(DEMO_PURCHASE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:cfg.id})});
-    const data=await r.json(); if(r.ok)code=data.code||"";
-  }catch(e){}
-  if(!code){toast("Impossible de générer le code PPV");return}
-  by("paidCode").textContent=code;
-  localStorage.setItem("ppv_last_code_"+cfg.id,code);
-  document.querySelector("#checkout .card").style.display="none";
-  document.querySelectorAll(".payopt").forEach(x=>x.style.display="none");
-  document.querySelector("#checkout .cta.full").style.display="none";
-  by("paid").style.display="block";
-  toast(msg||"Paiement confirmé ✓");
-}
-async function handlePayDunyaReturn(){
-  const q=new URLSearchParams(location.search);
-  if(q.get("payment_cancelled")==="1"){toast("Paiement annulé");return}
-  if(q.get("paydunya_return")!=="1")return;
-  const token=localStorage.getItem("paydunya_invoice_token");
-  if(!token){toast("Token PayDunya introuvable");return}
-  try{
-    const r=await fetch("/api/paydunya-confirm?token="+encodeURIComponent(token));
-    const data=await r.json();
-    if(data.configured&&data.paid){
-      go("checkout");simulatePaid("Paiement PayDunya Sandbox confirmé ✓");
-    }else if(!data.configured){
-      go("checkout");simulatePaid("PayDunya non configuré : retour démo simulé.");
-    }else{
-      toast("Paiement PayDunya non confirmé");
-    }
-  }catch(e){toast("Impossible de vérifier PayDunya")}
-}
-function openAfterPay(){by("codeInput").value=localStorage.getItem("ppv_last_code_"+cfg.id)||"";go("watch");unlock()}
+function openIssued(){by("codeInput").value=localStorage.getItem("last_code_"+current.id)||"";go("access");unlock()}
+function maskCode(c){return c.slice(0,2)+"•••"+c.slice(-1)}
+async function sessionCall(path,code){const r=await fetch(SESSION_API+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,eventKey:current.id,deviceId,token:sessionToken})});let d={};try{d=await r.json()}catch(e){}return{ok:r.ok,status:r.status,data:d}}
 async function unlock(){
-  const code=by("codeInput").value.trim();
-  if(!code){by("codeErr").textContent="Entrez votre code PPV.";return}
-  if(!cfg.id){by("codeErr").textContent="Combat introuvable.";return}
-  by("codeErr").textContent="Vérification du code...";
-  try{
-    const access=await fetch(ACCESS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:cfg.id,code})});
-    const data=await access.json();
-    if(!access.ok){
-      by("codeErr").textContent=data.error==="stream_not_configured"?"Le direct n'est pas encore configuré pour ce combat.":"Code PPV invalide ou expiré.";
-      return;
-    }
-    cfg.stream=data.stream_url||"";cfg.provider=data.provider||"";
-    const r=await sessionCall("/login",{code});
-    if(!r.ok||!r.data.token){by("codeErr").textContent="Impossible de vérifier la session.";return}
-    sessionToken=r.data.token;
-    by("codeErr").textContent="";
-    by("lock").style.display="none";
-    by("playerWrap").style.display="block";
-    renderCfg();mountPlayer();startHeartbeat();toast("Accès autorisé sur cet appareil");
-  }catch(e){
-    by("codeErr").textContent="Connexion au service d'accès impossible.";
-  }
+ const code=by("codeInput").value.trim().toUpperCase();by("codeInput").value=code;if(code.length!==6){by("codeErr").textContent="Le code doit contenir exactement 6 caractères.";return}
+ by("codeErr").textContent="Vérification…";
+ const a=await fetch(ACCESS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:current.id,code})});const d=await a.json();
+ if(!a.ok){by("codeErr").textContent=d.error==="stream_not_configured"?"Le flux de ce combat n'est pas encore configuré.":"Code invalide ou expiré.";return}
+ const s=await sessionCall("/login",code);if(!s.ok){by("codeErr").textContent="Impossible d'ouvrir la session.";return}
+ sessionToken=s.data.token;by("codeErr").textContent="";go("watch");mount(d.stream_url);startGuard(code);startHeartbeat(code)
 }
-function youtubeId(u){try{const x=new URL(u);if(x.hostname.includes("youtu.be"))return x.pathname.slice(1);if(x.hostname.includes("youtube.com"))return x.searchParams.get("v")||x.pathname.split("/").pop()}catch(e){}return null}
-function vimeoId(u){const m=String(u).match(/vimeo\.com\/(?:video\/)?(\d+)/);return m&&m[1]}
-function mountPlayer(){
-  if(hls){hls.destroy();hls=null} const m=by("playerMount");m.innerHTML="";
-  const u=(cfg.stream||"").trim();
-  if(!u){m.innerHTML='<div class="playerError"><b>Aucun flux n\'est configuré.</b><br><br>Ajoutez un lien HLS, MP4, YouTube ou Vimeo dans l\'espace Promoteur.</div>';return}
-  const yt=youtubeId(u),vi=vimeoId(u);
-  if(yt){m.innerHTML='<iframe allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen src="https://www.youtube.com/embed/'+yt+'?autoplay=1"></iframe>';return}
-  if(vi){m.innerHTML='<iframe allow="autoplay; fullscreen; picture-in-picture" allowfullscreen src="https://player.vimeo.com/video/'+vi+'?autoplay=1"></iframe>';return}
-  if(/^rtmp|^srt/i.test(u)){m.innerHTML='<div class="playerError"><b>Flux '+u.split(":")[0].toUpperCase()+' détecté.</b><br><br>Ce protocole doit être converti en HLS/LL-HLS avant lecture dans un navigateur.</div>';return}
-  const v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;m.appendChild(v);
-  if(/\.m3u8(?:\?|$)/i.test(u)){
-    if(v.canPlayType("application/vnd.apple.mpegurl")){v.src=u}
-    else if(window.Hls&&Hls.isSupported()){hls=new Hls({lowLatencyMode:true,backBufferLength:30,maxLiveSyncPlaybackRate:1.08});hls.loadSource(u);hls.attachMedia(v);hls.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)toast("Erreur du flux HLS — vérifiez CORS/URL")})}
-    else m.innerHTML='<div class="playerError">HLS non supporté par ce navigateur.</div>';
-  } else v.src=u;
-}
-function slugify(s){return String(s||"event").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
-function readAdminCfg(){
-  const a=by("a").value||"Combattant A",b=by("b").value||"Combattant B",rawDate=by("date").value||"";
-  const starts_at=rawDate?new Date(rawDate+"Z").toISOString():null;
-  return {id:cfg.id,slug:cfg.slug||slugify(a+"-"+b+"-"+rawDate),a,b,starts_at,price:Number(by("price").value||0),code:by("code").value.trim(),viewers:Number(by("viewers").value||0),stream:by("stream").value.trim(),provider:by("provider").value.trim()};
-}
-async function generate(){
-  const saved=await saveEvent(true); if(!saved)return;
-  const base=location.origin+location.pathname;
-  shareUrl=base+"?mode=watch&event="+encodeURIComponent(saved.id);
-  by("share").textContent=shareUrl;toast("Lien spectateur sécurisé généré");
-}
-async function copyShare(){if(!shareUrl)return toast("Générez d'abord un lien");await navigator.clipboard.writeText(shareUrl);toast("Lien copié")}
-function openShare(){if(!shareUrl)return toast("Générez d'abord un lien");window.open(shareUrl,"_blank")}
-function toast(t){const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)}
-async function bootstrap(){
-  const q=new URLSearchParams(location.search);
-  const raw=q.get("cfg");
-  if(raw){try{const legacy=dec(raw);cfg={...cfg,...legacy,starts_at:legacy.starts_at||legacy.date||cfg.starts_at}}catch(e){}}
-  await loadEvents();
-  if(q.get("mode")==="watch")go("home");
-  await handlePayDunyaReturn();
-}
-bootstrap();
-let demo=482351;setInterval(()=>{demo+=Math.floor(Math.random()*35);if(by("kViewers"))by("kViewers").textContent=demo.toLocaleString("fr-FR")},2500);
+function mount(u){const m=by("player");m.innerHTML="";if(hls){hls.destroy();hls=null}const yt=(()=>{try{const x=new URL(u);if(x.hostname.includes("youtu.be"))return x.pathname.slice(1);if(x.hostname.includes("youtube.com"))return x.searchParams.get("v")}catch(e){}return null})();if(yt){m.innerHTML='<iframe allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen src="https://www.youtube.com/embed/'+yt+'?autoplay=1"></iframe>';return}const v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;m.appendChild(v);if(/\.m3u8(?:\?|$)/i.test(u)){if(v.canPlayType("application/vnd.apple.mpegurl"))v.src=u;else if(Hls.isSupported()){hls=new Hls({lowLatencyMode:true,maxLiveSyncPlaybackRate:1.08});hls.loadSource(u);hls.attachMedia(v)}}else v.src=u}
+function startGuard(code){const g=by("guard");g.textContent="PPV GUARD • "+maskCode(code)+" • "+String(sessionToken||"").slice(0,6).toUpperCase();const move=()=>{g.style.left=(6+Math.random()*62)+"%";g.style.top=(10+Math.random()*65)+"%"};move();guardTimer=setInterval(move,9000)}
+function stop(reason){if(heartbeat)clearInterval(heartbeat);if(guardTimer)clearInterval(guardTimer);if(hls){hls.destroy();hls=null}by("player").innerHTML="";by("codeErr").textContent=reason;go("access");sessionToken=null}
+function startHeartbeat(code){if(heartbeat)clearInterval(heartbeat);heartbeat=setInterval(async()=>{try{const r=await sessionCall("/heartbeat",code);if(!r.ok&&r.status===409)stop("Ce code est actif sur un autre appareil. Cette session a été fermée.")}catch(e){}},5000)}
+window.addEventListener("popstate",()=>{const slug=location.pathname.startsWith("/e/")?decodeURIComponent(location.pathname.slice(3)):null;if(slug){const e=events.find(x=>x.slug===slug);if(e){current=e;renderCurrent()}}});
+load();
 </script>
-</body>
-</html>
+</body></html>
