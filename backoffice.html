@@ -4,7 +4,7 @@
 <style>
 :root{--bg:#080808;--card:#111;--line:#292929;--txt:#f7f7f2;--muted:#999;--accent:#f5c451;--green:#21c980}*{box-sizing:border-box}body{margin:0;background:#080808;color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}button,input,textarea,select{font:inherit}.wrap{width:min(1220px,calc(100% - 28px));margin:auto}.top{height:72px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:1000;font-size:22px}.brand b{color:var(--accent)}.badge{font-size:12px;color:#b9b9b2;border:1px solid var(--line);padding:7px 10px;border-radius:999px}.grid{display:grid;grid-template-columns:280px 1fr;gap:18px}.card{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:18px}.side{position:sticky;top:15px;height:max-content}.btn{border:0;border-radius:12px;padding:12px 15px;font-weight:850;cursor:pointer}.primary{background:var(--accent);color:#111}.dark{background:#202020;color:white;border:1px solid #333}.full{width:100%}.muted{color:var(--muted)}.login{max-width:470px;margin:70px auto}.field{display:flex;flex-direction:column;gap:6px;margin:10px 0}.field label{font-size:12px;color:var(--muted);font-weight:800}.field input,.field textarea,.field select{width:100%;background:#0a0a0a;border:1px solid #333;border-radius:11px;color:#fff;padding:12px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wide{grid-column:1/-1}.event{border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;cursor:pointer}.event:hover{border-color:#5d4a20}.row{display:flex;justify-content:space-between;gap:14px;align-items:center}.status{font-size:11px;border-radius:999px;padding:5px 8px;background:#203521;color:#aee9b5}.share{word-break:break-all;background:#070707;border:1px dashed #444;border-radius:10px;padding:11px;color:#bbb;font-size:12px}.hidden{display:none}.toast{position:fixed;bottom:18px;right:18px;background:#fff;color:#111;padding:12px 15px;border-radius:12px;font-weight:850;transform:translateY(100px);transition:.25s}.toast.on{transform:none}@media(max-width:800px){.grid{grid-template-columns:1fr}.side{position:static}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}}
 </style></head><body><div class="wrap"><div class="top"><div class="brand">LÀMB<b>LIVE</b> <span class="badge">BACKOFFICE</span></div><a href="/" style="color:#aaa;text-decoration:none">Voir le site public ↗</a></div>
-<section id="auth" class="login card"><h1>Connexion équipe</h1><p class="muted">Accédez à vos événements, flux et ventes PPV.</p><div class="field"><label>EMAIL</label><input id="email" type="email"/></div><div class="field"><label>MOT DE PASSE</label><input id="password" type="password"/></div><button class="btn primary full" onclick="login()">SE CONNECTER</button><button class="btn dark full" style="margin-top:8px" onclick="signup()">CRÉER UN COMPTE PROMOTEUR</button><p id="authMsg" class="muted"></p></section>
+<section id="auth" class="login card"><h1>Connexion équipe</h1><p class="muted">Accédez à vos événements, flux et ventes PPV.</p><div class="field"><label>EMAIL</label><input id="email" type="email"/></div><div class="field"><label>MOT DE PASSE</label><input id="password" type="password" autocomplete="new-password"/><div class="muted" style="font-size:12px">10 caractères minimum avec majuscule, minuscule, chiffre et symbole.</div></div><button class="btn primary full" onclick="login()">SE CONNECTER</button><button class="btn dark full" style="margin-top:8px" onclick="signup()">CRÉER UN COMPTE PROMOTEUR</button><p id="authMsg" class="muted"></p></section>
 <section id="app" class="hidden"><div class="grid"><aside class="card side"><div class="muted" style="font-size:12px">ESPACE</div><h2 id="workspaceName">—</h2><button class="btn primary full" onclick="newEvent()">+ NOUVEL ÉVÉNEMENT</button><button class="btn dark full" style="margin-top:8px" onclick="logout()">Déconnexion</button><div style="margin-top:20px"><div class="muted" style="font-size:12px">PPV GUARD</div><p class="muted" style="font-size:13px">1 appareil/code<br>Watermark session<br>Codes forts 6 caractères</p></div></aside>
 <main><section id="workspaceSetup" class="card hidden"><h2>Créer votre espace promoteur</h2><div class="field"><label>NOM DU PROMOTEUR / ORGANISATION</label><input id="wsName"/></div><div class="field"><label>COULEUR DE MARQUE</label><input id="wsColor" type="color" value="#f5c451"/></div><button class="btn primary" onclick="createWorkspace()">CRÉER L'ESPACE</button></section>
 <section id="dashboard" class="hidden"><div class="row"><div><div class="badge">ÉVÉNEMENTS</div><h1>Vos événements</h1></div><button class="btn primary" onclick="newEvent()">+ Créer</button></div><div id="eventList"></div></section>
@@ -20,13 +20,37 @@
 </div><button class="btn primary" onclick="saveEvent()">ENREGISTRER L'ÉVÉNEMENT</button><button id="demoPassBtn" class="btn dark" style="margin-left:8px" onclick="issueDemoPass()">GÉNÉRER UN PASS TEST</button><div id="demoPassBox" class="share" style="display:none;margin-top:12px;font-size:22px;font-weight:900;text-align:center"></div><div style="margin-top:18px"><div class="muted" style="font-size:12px">LIEN CLIENT</div><div id="shareLink" class="share">Sera généré après enregistrement.</div></div></section></main></div></section></div><div id="toast" class="toast"></div>
 <script>
 const URL="https://kfsjemncncergnotngmw.supabase.co",KEY="sb_publishable_1Q4aU2_nsIySRPsCpKu4CA_C-x89d1m";
-const sb=supabase.createClient(URL,KEY),API=URL+"/functions/v1/backoffice-api",UPLOAD=URL+"/functions/v1/upload-poster";
+const sb=supabase.createClient(URL,KEY),API=URL+"/functions/v1/backoffice-api",UPLOAD=URL+"/functions/v1/upload-poster",SIGNUP=URL+"/functions/v1/promoter-signup";
 let session=null,bootstrap=null,workspace=null,currentEvent=null;
 const by=x=>document.getElementById(x),toast=t=>{const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)},esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 async function headers(){const s=(await sb.auth.getSession()).data.session;return{"Content-Type":"application/json",Authorization:"Bearer "+s.access_token,apikey:KEY}}
 async function call(body){const r=await fetch(API,{method:"POST",headers:await headers(),body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error||"Erreur");return d}
-async function login(){const{error}=await sb.auth.signInWithPassword({email:by("email").value,password:by("password").value});if(error){by("authMsg").textContent=error.message;return}await init()}
-async function signup(){const{error}=await sb.auth.signUp({email:by("email").value,password:by("password").value});by("authMsg").textContent=error?error.message:"Compte créé. Si demandé, confirmez l'email puis connectez-vous."}
+async function login(){by("authMsg").textContent="Connexion…";const{error}=await sb.auth.signInWithPassword({email:by("email").value.trim().toLowerCase(),password:by("password").value});if(error){by("authMsg").textContent="Connexion impossible : "+error.message;return}by("authMsg").textContent="";await init()}
+async function signup(){
+ const email=by("email").value.trim().toLowerCase(),password=by("password").value;
+ by("authMsg").textContent="Création du compte…";
+ try{
+  const r=await fetch(SIGNUP,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({email,password})});
+  const d=await r.json();
+  if(!r.ok){
+    const messages={
+      email_invalide:"Adresse email invalide.",
+      mot_de_passe_trop_faible:"Mot de passe trop faible : 10 caractères minimum, majuscule, minuscule, chiffre et symbole.",
+      compte_existant:"Un compte existe déjà avec cet email. Utilisez « Se connecter ».",
+      trop_de_tentatives:"Trop de tentatives. Réessayez plus tard.",
+      creation_impossible:"Impossible de créer le compte pour le moment."
+    };
+    by("authMsg").textContent=messages[d.error]||"Impossible de créer le compte.";
+    return;
+  }
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){by("authMsg").textContent="Compte créé, mais connexion automatique impossible : "+error.message;return}
+  by("authMsg").textContent="Compte créé ✓";
+  await init();
+ }catch(e){
+  by("authMsg").textContent="Erreur réseau pendant la création du compte.";
+ }
+}
 async function logout(){await sb.auth.signOut();location.reload()}
 async function init(){session=(await sb.auth.getSession()).data.session;if(!session)return;by("auth").classList.add("hidden");by("app").classList.remove("hidden");await refresh()}
 async function refresh(){bootstrap=await call({action:"bootstrap"});workspace=bootstrap.memberships?.[0]?.promoters||null;if(!workspace){by("workspaceSetup").classList.remove("hidden");by("dashboard").classList.add("hidden");by("workspaceName").textContent="Nouvel espace";return}by("workspaceSetup").classList.add("hidden");by("workspaceName").textContent=workspace.name;document.documentElement.style.setProperty("--accent",workspace.accent_color||"#f5c451");renderEvents();showDashboard()}
