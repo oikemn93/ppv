@@ -125,7 +125,7 @@ async function handlePaymentReturn(){
  }catch(e){toast("Impossible de confirmer le paiement pour le moment.")}
 }
 function maskCode(c){return c.slice(0,2)+"•••"+c.slice(-1)}
-async function sessionCall(path,code){const r=await fetch(SESSION_API+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,eventKey:current.id,deviceId,token:sessionToken})});let d={};try{d=await r.json()}catch(e){}return{ok:r.ok,status:r.status,data:d}}
+async function sessionCall(path,code,proof=null){const r=await fetch(SESSION_API+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,eventKey:current.id,deviceId,token:sessionToken,proof})});let d={};try{d=await r.json()}catch(e){}return{ok:r.ok,status:r.status,data:d}}
 async function requestPlayback(code){
  const a=await fetch(ACCESS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:current.id,code,device_id:deviceId})});
  const d=await a.json();
@@ -142,7 +142,7 @@ async function unlock(){
  by("codeErr").textContent="Vérification sécurisée…";
  try{
   const d=await requestPlayback(code);
-  const s=await sessionCall("/login",code);if(!s.ok)throw new Error("Impossible d'ouvrir la session.");
+  const s=await sessionCall("/login",code,d.session_proof||null);if(!s.ok)throw new Error("Impossible d'ouvrir la session.");
   sessionToken=s.data.token;currentCode=code;currentKind=d.playback_kind||"hls";
   by("codeErr").textContent="";go("watch");mount(d.playback_url,currentKind);startGuard(code);startHeartbeat(code);startPlaybackRefresh();
  }catch(e){by("codeErr").textContent=e.message||"Accès refusé."}
