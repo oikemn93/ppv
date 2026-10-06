@@ -11,19 +11,22 @@ function safeEqual(a, b) {
   const bb = Buffer.from(String(b || "").toLowerCase());
   return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);
 }
-async function rpc(name, body) {
-  const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + name, {
+async function bridge(action, body) {
+  const secret = process.env.PAYMENT_BRIDGE_SECRET;
+  if (!secret) throw new Error("payment_bridge_not_configured");
+  const r = await fetch(SUPABASE_URL + "/functions/v1/payment-bridge", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       apikey: SUPABASE_KEY,
-      Authorization: "Bearer " + SUPABASE_KEY
+      "x-ppv-bridge-secret": secret
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify({ action, ...body })
   });
   const text = await r.text();
-  if (!r.ok) throw new Error(name + ":" + text.slice(0, 200));
-  return text ? JSON.parse(text) : null;
+  if (!r.ok) throw new Error(action + ":" + text.slice(0, 200));
+  const parsed = text ? JSON.parse(text) : {};
+  return parsed.result;
 }
 
 export default async function handler(req, res) {
@@ -65,7 +68,7 @@ export default async function handler(req, res) {
     data.invoice = data.invoice || {};
     data.invoice.token = data.invoice.token || invoiceToken;
 
-    await rpc("finalize_paydunya_ipn", { p_payload: data });
+    await bridge("finalize", { payload: data });
 
     if (status !== "completed") {
       return res.status(200).json({
@@ -77,7 +80,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const claimed = await rpc("claim_paydunya_pass", { p_provider_token: invoiceToken });
+    const claimed = await bridge("claim", { token: invoiceToken });
     const pass = Array.isArray(claimed) ? claimed[0] : claimed;
 
     if (!pass?.code) return res.status(500).json({ error: "pass_claim_failed" });
