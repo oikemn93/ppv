@@ -1,3 +1,31 @@
+import crypto from "node:crypto";
+
+const SUPABASE_URL = "https://kfsjemncncergnotngmw.supabase.co";
+const SUPABASE_KEY = "sb_publishable_1Q4aU2_nsIySRPsCpKu4CA_C-x89d1m";
+
+function expectedHash(masterKey) {
+  return crypto.createHash("sha512").update(masterKey).digest("hex");
+}
+function safeEqual(a, b) {
+  const aa = Buffer.from(String(a || "").toLowerCase());
+  const bb = Buffer.from(String(b || "").toLowerCase());
+  return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);
+}
+async function rpc(name, body) {
+  const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + name, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + SUPABASE_KEY
+    },
+    body: JSON.stringify(body)
+  });
+  const text = await r.text();
+  if (!r.ok) throw new Error(name + ":" + text.slice(0, 200));
+  return text ? JSON.parse(text) : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "method_not_allowed" });
 
@@ -23,17 +51,48 @@ export default async function handler(req, res) {
         }
       }
     );
+
     const data = await r.json();
+    if (!r.ok || data.response_code !== "00") {
+      return res.status(502).json({ error: "paydunya_confirm_failed" });
+    }
+
+    if (!safeEqual(data.hash, expectedHash(masterKey))) {
+      return res.status(403).json({ error: "invalid_paydunya_signature" });
+    }
+
     const status = String(data.status || "").toLowerCase();
-    return res.status(r.ok ? 200 : 502).json({
+    data.invoice = data.invoice || {};
+    data.invoice.token = data.invoice.token || invoiceToken;
+
+    await rpc("finalize_paydunya_ipn", { p_payload: data });
+
+    if (status !== "completed") {
+      return res.status(200).json({
+        configured: true,
+        sandbox: true,
+        paid: false,
+        status,
+        receiptUrl: data.receipt_url || null
+      });
+    }
+
+    const claimed = await rpc("claim_paydunya_pass", { p_provider_token: invoiceToken });
+    const pass = Array.isArray(claimed) ? claimed[0] : claimed;
+
+    if (!pass?.code) return res.status(500).json({ error: "pass_claim_failed" });
+
+    return res.status(200).json({
       configured: true,
       sandbox: true,
-      paid: status === "completed",
+      paid: true,
       status,
-      receiptUrl: data.receipt_url || null,
-      rawResponseCode: data.response_code || null
+      code: pass.code,
+      eventId: pass.event_id,
+      receiptUrl: data.receipt_url || null
     });
   } catch (error) {
-    return res.status(500).json({ error: "paydunya_unreachable" });
+    console.error("PayDunya confirmation error", error);
+    return res.status(500).json({ error: "payment_confirmation_failed" });
   }
 }
