@@ -38,7 +38,7 @@ button,input{font:inherit}.shell{width:min(1160px,calc(100% - 28px));margin:auto
 <main id="checkout" class="page"><div class="panel">
 <button class="btn outline" onclick="go('home')">← Retour</button>
 <h2 style="font-size:38px;margin-bottom:4px">Acheter votre pass</h2><p id="checkoutTitle" style="color:var(--muted)"></p>
-<div class="notice">Démo commerciale. Le checkout PayDunya Sandbox prend le relais dès que les clés sont configurées.</div>
+<div class="notice">Paiement sécurisé via PayDunya. Aucun pass gratuit n'est généré depuis le site public.</div>
 <div class="card"><div style="display:flex;justify-content:space-between"><span>Pass PPV</span><b><span id="checkoutPrice"></span> FCFA</b></div></div>
 <button class="payopt">🌊 Wave</button><button class="payopt">🟠 Orange Money</button><button class="payopt">💳 Carte bancaire</button>
 <button class="btn primary" style="width:100%;margin-top:12px" onclick="pay()">PAYER MAINTENANT</button>
@@ -63,9 +63,8 @@ button,input{font:inherit}.shell{width:min(1160px,calc(100% - 28px));margin:auto
 const SUPABASE_URL="https://kfsjemncncergnotngmw.supabase.co";
 const SUPABASE_KEY="sb_publishable_1Q4aU2_nsIySRPsCpKu4CA_C-x89d1m";
 const ACCESS_URL=SUPABASE_URL+"/functions/v1/stream-access";
-const DEMO_PURCHASE_URL=SUPABASE_URL+"/functions/v1/demo-purchase";
 const SESSION_API="https://ppv-sessions.n2yservice.workers.dev";
-let events=[],current=null,hls=null,sessionToken=null,heartbeat=null,guardTimer=null;
+let events=[],current=null,hls=null,sessionToken=null,heartbeat=null,guardTimer=null,playbackRefresh=null,currentCode="",currentKind="";
 let deviceId=localStorage.getItem("ppv_device_id");if(!deviceId){deviceId=crypto.randomUUID();localStorage.setItem("ppv_device_id",deviceId)}
 
 function by(x){return document.getElementById(x)} function toast(t){const x=by("toast");x.textContent=t;x.classList.add("on");setTimeout(()=>x.classList.remove("on"),2200)}
@@ -77,6 +76,7 @@ async function load(){
  events=await r.json();renderEvents();
  const slug=location.pathname.startsWith("/e/")?decodeURIComponent(location.pathname.slice(3)):new URLSearchParams(location.search).get("event");
  current=events.find(e=>e.slug===slug||e.id===slug)||events[0]||null;renderCurrent();
+ await handlePaymentReturn();
 }
 function renderEvents(){by("events").innerHTML=events.map(e=>`<article class="event" onclick="selectEvent('${e.slug}')"><div class="eventPoster" style="${e.poster_url?"background-image:url('"+esc(e.poster_url)+"')":""}"></div><div class="eventBody"><div class="eventMeta">${esc(e.promoters?.name||"Làmb Live")}</div><h3>${esc(e.title||e.fighter_a+" vs "+e.fighter_b)}</h3><div class="eventMeta">📅 ${esc(fmtDate(e.starts_at))}</div><div class="eventPrice">${Number(e.price_fcfa||0).toLocaleString("fr-FR")} FCFA</div></div></article>`).join("")}
 function selectEvent(slug){const e=events.find(x=>x.slug===slug);if(!e)return;current=e;history.pushState({}, "", "/e/"+encodeURIComponent(slug));renderCurrent();scrollTo({top:0,behavior:"smooth"})}
@@ -84,31 +84,91 @@ function renderCurrent(){if(!current)return;document.documentElement.style.setPr
 function checkout(){if(!current)return;go("checkout")} function showAccess(){if(!current&&events[0])current=events[0];go("access")}
 async function pay(){
  if(!current)return;
- toast("Préparation du paiement…");
+ toast("Préparation du paiement sécurisé…");
  try{
   const base=location.origin;
-  const r=await fetch("/api/paydunya-create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({amount:current.price_fcfa,description:"Pass PPV "+(current.title||current.fighter_a+" vs "+current.fighter_b),returnUrl:base+"/e/"+current.slug+"?paydunya_return=1",cancelUrl:base+"/e/"+current.slug+"?payment_cancelled=1",callbackUrl:base+"/api/paydunya-callback",customData:{event_id:current.id}})});
+  const r=await fetch("/api/paydunya-create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+    amount:current.price_fcfa,
+    description:"Pass PPV "+(current.title||current.fighter_a+" vs "+current.fighter_b),
+    returnUrl:base+"/e/"+current.slug,
+    cancelUrl:base+"/e/"+current.slug+"?payment_cancelled=1",
+    callbackUrl:base+"/api/paydunya-callback",
+    customData:{event_id:current.id}
+  })});
   const d=await r.json();
-  if(d.configured&&d.checkoutUrl){localStorage.setItem("paydunya_invoice_token",d.invoiceToken);location.href=d.checkoutUrl;return}
- }catch(e){}
- const r=await fetch(DEMO_PURCHASE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:current.id})});const d=await r.json();
- if(!r.ok)return toast("Impossible de générer le pass");
- by("issuedCode").textContent=d.code;localStorage.setItem("last_code_"+current.id,d.code);document.querySelector("#checkout .btn.primary[onclick='pay()']").style.display="none";by("paid").style.display="block";toast("Pass de démonstration généré");
+  if(d.configured&&d.checkoutUrl){
+    localStorage.setItem("paydunya_invoice_token",d.invoiceToken);
+    location.href=d.checkoutUrl;
+    return;
+  }
+  toast("Paiement PayDunya non configuré. Un pass test peut être généré depuis le backoffice.");
+ }catch(e){
+  toast("Service de paiement momentanément indisponible.");
+ }
 }
 function openIssued(){by("codeInput").value=localStorage.getItem("last_code_"+current.id)||"";go("access");unlock()}
+async function handlePaymentReturn(){
+ const q=new URLSearchParams(location.search);
+ if(q.get("payment_cancelled")==="1"){toast("Paiement annulé.");return}
+ const token=q.get("token")||localStorage.getItem("paydunya_invoice_token");
+ if(!q.get("token"))return;
+ try{
+  const r=await fetch("/api/paydunya-confirm?token="+encodeURIComponent(token));
+  const d=await r.json();
+  if(d.paid&&d.code){
+   by("issuedCode").textContent=d.code;
+   localStorage.setItem("last_code_"+(d.eventId||current.id),d.code);
+   go("checkout");document.querySelector("#checkout .btn.primary[onclick='pay()']").style.display="none";by("paid").style.display="block";
+   history.replaceState({},"",location.pathname);
+   toast("Paiement confirmé. Votre pass est prêt.");
+  }else toast("Paiement non confirmé.");
+ }catch(e){toast("Impossible de confirmer le paiement pour le moment.")}
+}
 function maskCode(c){return c.slice(0,2)+"•••"+c.slice(-1)}
 async function sessionCall(path,code){const r=await fetch(SESSION_API+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,eventKey:current.id,deviceId,token:sessionToken})});let d={};try{d=await r.json()}catch(e){}return{ok:r.ok,status:r.status,data:d}}
-async function unlock(){
- const code=by("codeInput").value.trim().toUpperCase();by("codeInput").value=code;if(code.length!==6){by("codeErr").textContent="Le code doit contenir exactement 6 caractères.";return}
- by("codeErr").textContent="Vérification…";
- const a=await fetch(ACCESS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:current.id,code})});const d=await a.json();
- if(!a.ok){by("codeErr").textContent=d.error==="stream_not_configured"?"Le flux de ce combat n'est pas encore configuré.":"Code invalide ou expiré.";return}
- const s=await sessionCall("/login",code);if(!s.ok){by("codeErr").textContent="Impossible d'ouvrir la session.";return}
- sessionToken=s.data.token;by("codeErr").textContent="";go("watch");mount(d.stream_url);startGuard(code);startHeartbeat(code)
+async function requestPlayback(code){
+ const a=await fetch(ACCESS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:current.id,code,device_id:deviceId})});
+ const d=await a.json();
+ if(!a.ok){
+  if(a.status===429)throw new Error("Trop de tentatives. Réessayez dans quelques minutes.");
+  if(d.error==="stream_not_configured")throw new Error("Le flux de ce combat n'est pas encore configuré.");
+  throw new Error("Code invalide ou expiré.");
+ }
+ return d;
 }
-function mount(u){const m=by("player");m.innerHTML="";if(hls){hls.destroy();hls=null}const yt=(()=>{try{const x=new URL(u);if(x.hostname.includes("youtu.be"))return x.pathname.slice(1);if(x.hostname.includes("youtube.com"))return x.searchParams.get("v")}catch(e){}return null})();if(yt){m.innerHTML='<iframe allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen src="https://www.youtube.com/embed/'+yt+'?autoplay=1"></iframe>';return}const v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;m.appendChild(v);if(/\.m3u8(?:\?|$)/i.test(u)){if(v.canPlayType("application/vnd.apple.mpegurl"))v.src=u;else if(Hls.isSupported()){hls=new Hls({lowLatencyMode:true,maxLiveSyncPlaybackRate:1.08});hls.loadSource(u);hls.attachMedia(v)}}else v.src=u}
+async function unlock(){
+ const code=by("codeInput").value.trim().toUpperCase();by("codeInput").value=code;
+ if(code.length!==6){by("codeErr").textContent="Le code doit contenir exactement 6 caractères.";return}
+ by("codeErr").textContent="Vérification sécurisée…";
+ try{
+  const d=await requestPlayback(code);
+  const s=await sessionCall("/login",code);if(!s.ok)throw new Error("Impossible d'ouvrir la session.");
+  sessionToken=s.data.token;currentCode=code;currentKind=d.playback_kind||"hls";
+  by("codeErr").textContent="";go("watch");mount(d.playback_url,currentKind);startGuard(code);startHeartbeat(code);startPlaybackRefresh();
+ }catch(e){by("codeErr").textContent=e.message||"Accès refusé."}
+}
+function mount(u,kind){
+ const m=by("player");m.innerHTML="";if(hls){hls.destroy();hls=null}
+ const v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;m.appendChild(v);
+ if(kind==="hls"){
+  if(v.canPlayType("application/vnd.apple.mpegurl"))v.src=u;
+  else if(Hls.isSupported()){hls=new Hls({lowLatencyMode:true,maxLiveSyncPlaybackRate:1.08});hls.loadSource(u);hls.attachMedia(v)}
+ }else v.src=u
+}
+function startPlaybackRefresh(){
+ if(playbackRefresh)clearInterval(playbackRefresh);
+ playbackRefresh=setInterval(async()=>{
+  if(!currentCode)return;
+  try{
+   const d=await requestPlayback(currentCode);
+   currentKind=d.playback_kind||currentKind;
+   if(hls){hls.loadSource(d.playback_url)}
+   else{const v=by("player").querySelector("video");if(v)v.src=d.playback_url}
+  }catch(e){stop("Votre autorisation de lecture a expiré. Entrez à nouveau votre code.")}
+ },20*60*1000)
+}
 function startGuard(code){const g=by("guard");g.textContent="PPV GUARD • "+maskCode(code)+" • "+String(sessionToken||"").slice(0,6).toUpperCase();const move=()=>{g.style.left=(6+Math.random()*62)+"%";g.style.top=(10+Math.random()*65)+"%"};move();guardTimer=setInterval(move,9000)}
-function stop(reason){if(heartbeat)clearInterval(heartbeat);if(guardTimer)clearInterval(guardTimer);if(hls){hls.destroy();hls=null}by("player").innerHTML="";by("codeErr").textContent=reason;go("access");sessionToken=null}
+function stop(reason){if(heartbeat)clearInterval(heartbeat);if(guardTimer)clearInterval(guardTimer);if(playbackRefresh)clearInterval(playbackRefresh);if(hls){hls.destroy();hls=null}by("player").innerHTML="";by("codeErr").textContent=reason;go("access");sessionToken=null;currentCode=""}
 function startHeartbeat(code){if(heartbeat)clearInterval(heartbeat);heartbeat=setInterval(async()=>{try{const r=await sessionCall("/heartbeat",code);if(!r.ok&&r.status===409)stop("Ce code est actif sur un autre appareil. Cette session a été fermée.")}catch(e){}},5000)}
 window.addEventListener("popstate",()=>{const slug=location.pathname.startsWith("/e/")?decodeURIComponent(location.pathname.slice(3)):null;if(slug){const e=events.find(x=>x.slug===slug);if(e){current=e;renderCurrent()}}});
 load();
