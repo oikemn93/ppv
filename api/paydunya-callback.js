@@ -53,17 +53,19 @@ function safeEqual(a, b) {
 }
 
 async function finalize(payload) {
-  const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/finalize_paydunya_ipn", {
+  const secret = process.env.PAYMENT_BRIDGE_SECRET;
+  if (!secret) throw new Error("payment_bridge_not_configured");
+  const r = await fetch(SUPABASE_URL + "/functions/v1/payment-bridge", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       apikey: SUPABASE_KEY,
-      Authorization: "Bearer " + SUPABASE_KEY
+      "x-ppv-bridge-secret": secret
     },
-    body: JSON.stringify({ p_payload: payload })
+    body: JSON.stringify({ action: "finalize", payload })
   });
   const text = await r.text();
-  if (!r.ok) throw new Error("supabase_finalize_failed:" + text.slice(0, 180));
+  if (!r.ok) throw new Error("payment_bridge_finalize_failed:" + text.slice(0, 180));
   return text ? JSON.parse(text) : {};
 }
 
